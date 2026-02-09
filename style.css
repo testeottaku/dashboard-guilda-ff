@@ -394,3 +394,39 @@ body {
   .otk-footer__inner{ flex-direction: column; align-items:flex-start; }
   .otk-footer__bottom{ justify-content:flex-start; }
 }
+
+
+/* ====== Accent (cor predominante) via CSS vars ====== */
+:root{
+  --accent-50:#ecfdf5; --accent-100:#d1fae5; --accent-200:#a7f3d0; --accent-300:#6ee7b7;
+  --accent-400:#34d399; --accent-500:#10b981; --accent-600:#059669; --accent-700:#047857;
+  --accent-name: green;
+}
+
+/* Overrides para classes Tailwind emerald mais usadas */
+.bg-emerald-600{ background-color: var(--accent-600) !important; }
+.bg-emerald-500{ background-color: var(--accent-500) !important; }
+.text-emerald-600{ color: var(--accent-600) !important; }
+.text-emerald-500{ color: var(--accent-500) !important; }
+.border-emerald-500\/20{ border-color: color-mix(in srgb, var(--accent-500) 20%, transparent) !important; }
+.hover\:border-emerald-500\/40:hover{ border-color: color-mix(in srgb, var(--accent-500) 40%, transparent) !important; }
+.hover\:shadow-emerald-500\/10:hover{ box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--accent-500) 10%, transparent), 0 4px 6px -4px color-mix(in srgb, var(--accent-500) 10%, transparent) !important; }
+.ring-emerald-100{ --tw-ring-color: var(--accent-100) !important; }
+.focus\:ring-emerald-500:focus{ --tw-ring-color: var(--accent-500) !important; }
+.from-emerald-500{ --tw-gradient-from: var(--accent-500) var(--tw-gradient-from-position) !important; }
+.to-green-600{ --tw-gradient-to: var(--accent-600) var(--tw-gradient-to-position) !important; }
+.shadow-green-200{ --tw-shadow-color: var(--accent-200) !important; --tw-shadow: var(--tw-shadow-colored) !important; }
+.hover\:bg-emerald-50:hover{ background-color: var(--accent-50) !important; }
+
+/* ====== Tema escuro (local por usuário) ====== */
+.theme-dark body{ background:#0b1220; color:#e5e7eb; }
+.theme-dark .bg-gray-50\/80{ background-color: rgba(11,18,32,.9) !important; }
+.theme-dark .bg-white{ background-color: rgba(17,24,39,.95) !important; }
+.theme-dark .text-gray-900{ color:#f9fafb !important; }
+.theme-dark .text-gray-700{ color:#e5e7eb !important; }
+.theme-dark .text-gray-600{ color:#d1d5db !important; }
+.theme-dark .text-gray-500{ color:#9ca3af !important; }
+.theme-dark .border-gray-100{ border-color: rgba(255,255,255,.08) !important; }
+.theme-dark .border-gray-200{ border-color: rgba(255,255,255,.10) !important; }
+.theme-dark .bg-gray-50{ background-color: rgba(255,255,255,.04) !important; }
+.theme-dark .hover\:bg-gray-100:hover{ background-color: rgba(255,255,255,.06) !important; }
