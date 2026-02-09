@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guild Manager - Dashboard</title>
+
+    
+    <!-- theme bootstrap (por usuário) -->
+    <script>
+      (function(){
+        try{
+          var t = localStorage.getItem('guild_theme');
+          if(t === 'dark') document.documentElement.classList.add('theme-dark');
+        }catch(e){}
+      })();
+    </script>
+<!-- Tailwind via CDN (sem build) -->
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              emerald: {
+                50: '#ecfdf5',
+                100: '#d1fae5',
+                200: '#a7f3d0',
+                400: '#34d399',
+                500: '#10b981',
+                600: '#059669',
+                700: '#047857',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- CSS global do projeto -->
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+
+  <body>
+    <div id="root" style="display:none;"></div>
+    <div id="login-screen" class="login-screen show" aria-hidden="false">
+      <div class="login-card" role="dialog" aria-modal="true" aria-label="Login">
+        <div class="login-brand">
+          <div class="login-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l8 4v7c0 5-3.4 9.4-8 9.4S4 18 4 13V6l8-4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="login-title">Guilda e eventos</div>
+            <div class="login-subtitle">Acesso restrito • Administradores</div>
+          </div>
+        </div>
+
+        <form id="login-form" class="login-form">
+          <label class="login-label" for="login-email">Email</label>
+          <input id="login-email" class="login-input" type="email" autocomplete="username" placeholder="seuemail@exemplo.com" required />
+
+          <label class="login-label" for="login-pass">Senha</label>
+          <input id="login-pass" class="login-input" type="password" autocomplete="current-password" placeholder="••••••••" required />
+
+          <button id="login-btn" class="login-btn" type="submit">
+            <span class="login-btnText">Entrar</span>
+            <span class="login-spinner" aria-hidden="true"></span>
+          </button>
+
+          <div class="login-hint">
+            Use um usuário criado no Firebase Authentication (Email/Senha).
+          </div>
+        </form>
+
+        <div class="login-footer">
+          <a href="https://ottakubrasil.online" target="_blank" rel="noopener noreferrer">ottakubrasil.online</a>
+          <span>•</span>
+          <a href="https://instagram.com/ottakubrasil" target="_blank" rel="noopener noreferrer">@ottakubrasil</a>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Firebase (Firestore) + Toast (sem login) -->
+    <script type="module">
+      import {
+        initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+        signOut
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        setDoc,
+        doc,
+        deleteDoc,
+        serverTimestamp,
+        getDoc,
+        updateDoc,
+        arrayUnion,
+        arrayRemove,
+        query,
+        where,
+        limit
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyA5uana2jcnWCkY3vqpotbpoQKxy7bTMtU",
+        authDomain: "guilda-otk.firebaseapp.com",
+        projectId: "guilda-otk",
+        storageBucket: "guilda-otk.firebasestorage.app",
+        messagingSenderId: "628349020809",
+        appId: "1:628349020809:web:be1457404159f9ea2a3458",
+        measurementId: "G-65FGV5MT0N"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+
+      // Ajustes globais (tag + cor predominante)
+      const __AJUSTES_DOC = doc(db, "ajustes", "global");
+
+      const __ACCENT_PALETTES = {
+        green: {50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857'},
+        blue:  {50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8'},
+        yellow:{50:'#fffbeb',100:'#fef3c7',200:'#fde68a',300:'#fcd34d',400:'#fbbf24',500:'#f59e0b',600:'#d97706',700:'#b45309'},
+        red:   {50:'#fef2f2',100:'#fee2e2',200:'#fecaca',300:'#fca5a5',400:'#f87171',500:'#ef4444',600:'#dc2626',700:'#b91c1c'},
+        purple:{50:'#faf5ff',100:'#f3e8ff',200:'#e9d5ff',300:'#d8b4fe',400:'#c084fc',500:'#a855f7',600:'#9333ea',700:'#7e22ce'},
+        pink:  {50:'#fdf2f8',100:'#fce7f3',200:'#fbcfe8',300:'#f9a8d4',400:'#f472b6',500:'#ec4899',600:'#db2777',700:'#be185d'},
+        teal:  {50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',300:'#5eead4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e'}
+      };
+
+      function __applyAccentPalette(name){
+        const key = (__ACCENT_PALETTES[name] ? name : "green");
+        const p = __ACCENT_PALETTES[key];
+        const r = document.documentElement;
+        Object.keys(p).forEach(k => r.style.setProperty(`--accent-${k}`, p[k]));
+        r.style.setProperty("--accent-name", key);
+      }
+
+      async function __getAjustes(){
+        const snap = await getDoc(__AJUSTES_DOC);
+        const data = snap.exists() ? (snap.data() || {}) : {};
+        return {
+          tagPrefix: String(data.tagPrefix || "ᵒᵗᵏ").trim(),
+          accent: String(data.accent || "green").trim(),
+        };
+      }
+
+      async function __setAjustes(patch){
+        const me = await __resolveRole();
+        if(!me || me.role !== "leader") throw new Error("Apenas Líder pode alterar Tag/Cor.");
+        const clean = {};
+        if(typeof patch.tagPrefix !== "undefined"){
+          const v = String(patch.tagPrefix || "").trim();
+          if(!v) throw new Error("Informe a Tag.");
+          if(v.length > 16) throw new Error("Tag muito grande (máx. 16 caracteres).");
+          clean.tagPrefix = v;
+        }
+        if(typeof patch.accent !== "undefined"){
+          const v = String(patch.accent || "").trim();
+          if(!__ACCENT_PALETTES[v]) throw new Error("Cor inválida.");
+          clean.accent = v;
+        }
+        clean.updatedAt = serverTimestamp();
+        await setDoc(__AJUSTES_DOC, clean, { merge: true });
+        return true;
+      }
+
+      async function __loadAndApplyAjustes(){
+        try{
+          const a = await __getAjustes();
+          window.__globalSettings = { ...a };
+          __applyAccentPalette(a.accent);
+          return a;
+        }catch(e){
+          window.__globalSettings = { tagPrefix: "ᵒᵗᵏ", accent: "green" };
+          __applyAccentPalette("green");
+          return window.__globalSettings;
+        }
+      }
+
+      window.__settingsApi = {
+        getGlobal: __getAjustes,
+        setGlobal: __setAjustes,
+        applyAccent: __applyAccentPalette,
+        loadAndApply: __loadAndApplyAjustes,
+        palettes: __ACCENT_PALETTES
+      };
+
+
+
+      // Roles: Admin vs Líder
+      const __SECURITY_DOC = doc(db, "guildConfig", "security");
+
+      async function __getSecurity(){
+        const snap = await getDoc(__SECURITY_DOC);
+        const data = snap.exists() ? snap.data() : {};
+        const admins = Array.isArray(data.admins) ? data.admins.map(e=>String(e).toLowerCase().trim()).filter(Boolean) : [];
+        const leaders = Array.isArray(data.leaders) ? data.leaders.map(e=>String(e).toLowerCase().trim()).filter(Boolean) : [];
+        return { admins, leaders };
+      }
+
+      async function __resolveRole(){
+        const u = auth.currentUser;
+        if(!u || !u.email) return null;
+        const email = String(u.email).toLowerCase().trim();
+        const sec = await __getSecurity();
+        const role = sec.admins.includes(email) ? "admin" : (sec.leaders.includes(email) ? "leader" : null);
+        window.__session = { email, role };
+        try{ sessionStorage.setItem("__session", JSON.stringify(window.__session)); }catch(_){ }
+        return window.__session;
+      }
+
+      // Auth secundário para criar contas sem deslogar o usuário atual
+      const __secondaryApp = initializeApp(firebaseConfig, "secondary");
+      const __secondaryAuth = getAuth(__secondaryApp);
+
+      window.__adminApi = {
+        // Apenas líder pode usar
+        async createUser(email, password){
+          const me = await __resolveRole();
+          if(!me || me.role !== "leader") throw new Error("Apenas Líder pode criar contas.");
+          const e = String(email||"").trim();
+          const p = String(password||"").trim();
+          if(!e || !p) throw new Error("Informe email e senha.");
+          await createUserWithEmailAndPassword(__secondaryAuth, e, p);
+          // limpa sessão secundária
+          try{ await signOut(__secondaryAuth); }catch(_){}
+          return true;
+        },
+        async addAdminEmail(email){
+          const me = await __resolveRole();
+          if(!me || me.role !== "leader") throw new Error("Apenas Líder pode adicionar Admin.");
+          const e = String(email||"").toLowerCase().trim();
+          if(!e) throw new Error("Informe o email.");
+          await setDoc(__SECURITY_DOC, { admins: arrayUnion(e) }, { merge: true });
+          return true;
+        },
+        async removeAdminEmail(email){
+          const me = await __resolveRole();
+          if(!me || me.role !== "leader") throw new Error("Apenas Líder pode remover Admin.");
+          const e = String(email||"").toLowerCase().trim();
+          if(!e) throw new Error("Informe o email.");
+          await setDoc(__SECURITY_DOC, { admins: arrayRemove(e) }, { merge: true });
+          return true;
+        },
+        async addLeaderEmail(email){
+          const me = await __resolveRole();
+          if(!me || me.role !== "leader") throw new Error("Apenas Líder pode adicionar Líder.");
+          const e = String(email||"").toLowerCase().trim();
+          if(!e) throw new Error("Informe o email.");
+          await setDoc(__SECURITY_DOC, { leaders: arrayUnion(e) }, { merge: true });
+          return true;
+        },
+        async removeLeaderEmail(email){
+          const me = await __resolveRole();
+          if(!me || me.role !== "leader") throw new Error("Apenas Líder pode remover Líder.");
+          const e = String(email||"").toLowerCase().trim();
+          if(!e) throw new Error("Informe o email.");
+          await setDoc(__SECURITY_DOC, { leaders: arrayRemove(e) }, { merge: true });
+          return true;
+        },
+        async listLeaders(){
+          const me = await __resolveRole();
+          if(!me) throw new Error("Faça login.");
+          return (await __getSecurity()).leaders;
+        },
+
+        async listAdmins(){
+          const me = await __resolveRole();
+          if(!me) throw new Error("Faça login.");
+          return (await __getSecurity()).admins;
+        },
+        async ensureRole(){
+          return await __resolveRole();
+        }
+      };
+
+
+
+      // Auth API exposta para scripts não-module (UI)
+      window.__authApi = {
+        signIn: (email, pass) => signInWithEmailAndPassword(auth, email, pass),
+        signOut: () => signOut(auth),
+        onChange: (cb) => onAuthStateChanged(auth, cb),
+        currentUser: () => auth.currentUser
+      };
+
+      function __requireAuth(){
+        const u = auth.currentUser;
+        if(!u) throw new Error("Você precisa estar logado para acessar os dados.");
+        return u;
+      }
+
+      // Store em memória (substitui localStorage por completo)
+      window.__guildLS = (() => {
+        const mem = Object.create(null);
+        return {
+          getItem: (k) => (k in mem ? mem[k] : null),
+          setItem: (k, v) => { mem[k] = String(v); },
+          removeItem: (k) => { delete mem[k]; }
+        };
+      })();
+
+      // Toast customizado
+      (function setupToast(){
+        const container = document.createElement("div");
+        container.id = "toast-root";
+        container.style.position = "fixed";
+        container.style.zIndex = "9999";
+        container.style.right = "16px";
+        container.style.top = "16px";
+        container.style.display = "flex";
+        container.style.flexDirection = "column";
+        container.style.gap = "10px";
+        document.body.appendChild(container);
+
+                window.__toast = function(type, message, duration){
+          const el = document.createElement("div");
+          const t = (type||"info").toLowerCase();
+          const isSuccess = t === "success";
+          const isInfo = t === "info" || t === "warning" || t === "warn";
+          const accent = isSuccess ? "rgba(16,185,129,.25)" : (isInfo ? "rgba(245,158,11,.25)" : "rgba(239,68,68,.25)");
+          const dot = isSuccess ? "#10b981" : (isInfo ? "#f59e0b" : "#ef4444");
+
+          el.style.minWidth = "240px";
+          el.style.maxWidth = "340px";
+          el.style.padding = "12px 14px";
+          el.style.borderRadius = "14px";
+          el.style.boxShadow = "0 18px 40px rgba(0,0,0,.15)";
+          el.style.background = "#ffffff";
+          el.style.border = "1px solid " + accent;
+          el.style.fontFamily = "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+          el.style.color = "#111827";
+          el.style.display = "flex";
+          el.style.gap = "10px";
+          el.style.alignItems = "flex-start";
+
+          const bullet = document.createElement("div");
+          bullet.style.width = "10px";
+          bullet.style.height = "10px";
+          bullet.style.borderRadius = "999px";
+          bullet.style.marginTop = "5px";
+          bullet.style.background = dot;
+
+          const wrap = document.createElement("div");
+          const title = document.createElement("div");
+          title.style.fontWeight = "800";
+          title.style.fontSize = "14px";
+          title.style.lineHeight = "1.1";
+          title.textContent = isSuccess ? "Sucesso" : (isInfo ? "Info" : "Erro");
+
+          const msg = document.createElement("div");
+          msg.style.marginTop = "4px";
+          msg.style.fontSize = "13px";
+          msg.style.color = "#374151";
+          msg.style.whiteSpace = "pre-line";
+          msg.textContent = String(message||"");
+
+          wrap.appendChild(title);
+          wrap.appendChild(msg);
+
+          el.appendChild(bullet);
+          el.appendChild(wrap);
+          container.appendChild(el);
+
+          const ms = Number(duration||2500);
+          setTimeout(()=>{ 
+            el.style.opacity = "0";
+            el.style.transform = "translateY(-6px)";
+            el.style.transition = "all .25s ease";
+            setTimeout(()=>{ try{container.removeChild(el);}catch(e){} }, 260);
+          }, ms);
+        };
+      })();
+
+      // Firestore API (coleção: "membros")
+      window.__guildDB = {
+        async getMembers(){
+          const snap = await getDocs(collection(db, "membros"));
+          const arr = [];
+          snap.forEach(d => {
+            const data = d.data() || {};
+            // garante id
+            arr.push({ id: d.id, ...data, id: d.id });
+          });
+          // ordena por nick (opcional)
+          arr.sort((a,b)=> String(a.nick||"").localeCompare(String(b.nick||""), "pt-BR"));
+          return arr;
+        },
+        async addMember(member){
+          const clean = { ...member };
+          // remove data de entrada se vier por acaso
+          delete clean.joinDate;
+
+          // aplica/remover tag opcional
+          const __tag = (window.__globalSettings && window.__globalSettings.tagPrefix) ? String(window.__globalSettings.tagPrefix).trim() : "ᵒᵗᵏ";
+          const __tagRe = new RegExp("^" + __tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s+", "i");
+          const _rawNick = String(clean.nick||"").replace(__tagRe,"").replace(/^otk\s+/i,"").trim();
+          if(clean.hasTag){ clean.nick = __tag + " " + _rawNick; } else { clean.nick = _rawNick; }
+
+          // bloqueia ID do jogador duplicado (visibleId)
+          const vid = String(clean.visibleId||"").trim();
+          if(!vid) throw new Error("Informe o ID do jogador.");
+          const q = query(collection(db, "membros"), where("visibleId", "==", vid), limit(1));
+          const snap = await getDocs(q);
+          if(!snap.empty) throw new Error("Esse ID já existe. Não é possível adicionar repetido.");
+
+          clean.updatedAt = serverTimestamp();
+          await setDoc(doc(db, "membros", clean.id), clean, { merge: true });
+        },
+        async updateMember(id, patch){
+          const clean = { ...patch };
+          delete clean.joinDate;
+
+          // aplica/remover tag opcional
+          const __tag = (window.__globalSettings && window.__globalSettings.tagPrefix) ? String(window.__globalSettings.tagPrefix).trim() : "ᵒᵗᵏ";
+          const __tagRe = new RegExp("^" + __tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s+", "i");
+          const _rawNick = String(clean.nick||"").replace(__tagRe,"").replace(/^otk\s+/i,"").trim();
+          if(clean.hasTag){ clean.nick = __tag + " " + _rawNick; } else { clean.nick = _rawNick; }
+
+          // se estiver alterando o ID visível, valida duplicidade
+          if(typeof clean.visibleId !== "undefined"){
+            const vid = String(clean.visibleId||"").trim();
+            if(!vid) throw new Error("Informe o ID do jogador.");
+            const q = query(collection(db, "membros"), where("visibleId", "==", vid), limit(5));
+            const snap = await getDocs(q);
+            const conflict = snap.docs.find(d => d.id !== id);
+            if(conflict) throw new Error("Esse ID já existe. Não é possível duplicar.");
+          }
+
+          clean.updatedAt = serverTimestamp();
+          await setDoc(doc(db, "membros", id), clean, { merge: true });
+        },
+        async deleteMember(id){
+          await deleteDoc(doc(db, "membros", id));
+        }
+      };
+
+      // Remove campo "Data de Entrada" visualmente (garantia extra, sem depender do bundle)
+      (function hideJoinDateField(){
+        const kill = () => {
+          const labels = Array.from(document.querySelectorAll("label"));
+          labels.forEach(l => {
+            if ((l.textContent || "").trim() === "Data de Entrada") {
+              const wrap = l.closest("div");
+              if (wrap) wrap.remove();
+            }
+          });
+        };
+        new MutationObserver(kill).observe(document.documentElement, { childList: true, subtree: true });
+      })();
+    
+
+      // Atualiza role ao mudar sessão (e garante menu correto)
+      onAuthStateChanged(auth, async (u) => {
+        try{
+          if(u){
+            const s = await window.__adminApi.ensureRole();
+            try{ await (window.__settingsApi && window.__settingsApi.loadAndApply ? window.__settingsApi.loadAndApply() : null); }catch(_){ }
+            try{ window.dispatchEvent(new Event("guild:settings-updated")); }catch(_){ }
+            if(!s || !s.role){
+              try{ window.__toast && window.__toast("error","Email não autorizado (não está em leaders/admins)."); }catch(_){}
+              try{ sessionStorage.removeItem("__session"); }catch(_){}
+              try{ await signOut(auth); }catch(_){}
+              return;
+            }
+            // Debug leve
+            try{ window.__toast && window.__toast("success","Perfil: "+s.role+" • "+s.email, 3000); }catch(_){}
+
+            // Garante que o app renderize com o role correto (evita só Dashboard)
+            try{
+              const k="__role_boot";
+              if(sessionStorage.getItem(k)!=="1"){
+                sessionStorage.setItem(k,"1");
+                location.reload();
+              }
+            }catch(_){}
+          }else{
+            window.__session = null;
+            try{ sessionStorage.removeItem("__session"); sessionStorage.removeItem("__role_boot"); }catch(_){}
+          }
+        }catch(e){
+          try{ window.__toast && window.__toast("error","Falha ao validar perfil."); }catch(_){}
+        }
+      });
+</script>
+
+
+    <script>
+      // Auth UI (Login) - modular + feedback + fix tela vazia
+      (function(){
+        const root = document.getElementById("root");
+        const loginScreen = document.getElementById("login-screen");
+        const form = document.getElementById("login-form");
+        const emailEl = document.getElementById("login-email");
+        const passEl = document.getElementById("login-pass");
+        const btn = document.getElementById("login-btn");
+
+        let authResolved = false;
+        let welcomedThisSession = false;
+
+        function setLoading(v){
+          if(!btn) return;
+          btn.disabled = !!v;
+          btn.classList.toggle("is-loading", !!v);
+        }
+        function showLogin(){
+          if(root) root.style.display = "none";
+          if(loginScreen){ loginScreen.classList.add("show"); loginScreen.setAttribute("aria-hidden","false"); }
+        }
+        function showApp(){
+          if(loginScreen){ loginScreen.classList.remove("show"); loginScreen.setAttribute("aria-hidden","true"); }
+          if(root) root.style.display = "";
+        }
+        function toast(type, msg){ window.__toast && window.__toast(type, msg); }
+
+        function friendlyAuthError(err){
+          const code = (err && err.code) ? String(err.code) : "";
+          if(code.includes("auth/invalid-email")) return "Email inválido.";
+          if(code.includes("auth/user-not-found")) return "Conta não encontrada. Verifique o email.";
+          if(code.includes("auth/wrong-password")) return "Senha incorreta. Tente novamente.";
+          if(code.includes("auth/invalid-credential")) return "Email ou senha incorretos.";
+          if(code.includes("auth/too-many-requests")) return "Muitas tentativas. Aguarde alguns minutos e tente de novo.";
+          if(code.includes("auth/network-request-failed")) return "Falha de rede. Verifique sua conexão.";
+          return (err && err.message) ? err.message : "Falha no login.";
+        }
+
+        function waitAuthApi(){
+          return new Promise((resolve)=>{
+            const t0 = Date.now();
+            const tick = () => {
+              if(window.__authApi) return resolve(window.__authApi);
+              if(Date.now() - t0 > 8000) return resolve(null);
+              setTimeout(tick, 60);
+            };
+            tick();
+          });
+        }
+
+        function reloadOnce(flag){
+          try{
+            const k = "__reload_" + flag;
+            if(sessionStorage.getItem(k) === "1") return;
+            sessionStorage.setItem(k, "1");
+            location.reload();
+          }catch(_){}
+        }
+
+        (async ()=>{
+          const api = await waitAuthApi();
+          if(!api){
+            toast("error","Firebase Auth não carregou. Verifique sua conexão/hosting.");
+            showLogin();
+            return;
+          }
+
+          window.__logout = async function(){
+            try{ await api.signOut(); toast("success","Você saiu da conta."); showLogin(); }
+            catch(e){ toast("error","Erro ao sair."); }
+          };
+
+          // Se a sessão estiver válida, mas o app não montar por timing, recarrega uma vez
+          setTimeout(()=>{
+            const hasUser = api.currentUser && api.currentUser();
+            const isEmpty = root && root.childElementCount === 0;
+            if(hasUser && isEmpty) reloadOnce("mount");
+          }, 1200);
+
+          setTimeout(()=>{ if(!authResolved) toast("info","Verificando sessão..."); }, 250);
+
+          api.onChange((user)=>{
+            authResolved = true;
+            if(user){
+              showApp();
+              if(!welcomedThisSession){ welcomedThisSession = true; toast("success","Login confirmado. Bem-vindo!"); }
+              // Caso a UI principal ainda não tenha montado, recarrega
+              if(root && root.childElementCount === 0) reloadOnce("afterlogin");
+            }else{
+              showLogin();
+            }
+          });
+
+          if(form){
+            form.addEventListener("submit", async (ev)=>{
+              ev.preventDefault();
+              const email = (emailEl && emailEl.value || "").trim();
+              const pass = (passEl && passEl.value || "").trim();
+              if(!email || !pass){ toast("error","Preencha email e senha."); return; }
+
+              setLoading(true);
+              toast("info","Autenticando...");
+
+              try{
+                await api.signIn(email, pass);
+                toast("success","Login realizado com sucesso.");
+                showApp();
+                // Recarrega uma vez para garantir que o React inicie já autenticado
+                reloadOnce("signin");
+              }catch(err){
+                toast("error", friendlyAuthError(err));
+                showLogin();
+              }finally{
+                setLoading(false);
+              }
+            });
+          }
+        })();
+      })();
+
+
+        // UI: Ajustes (tela "Ajustes") + Tema local (localStorage)
+        ;(function setupAjustesUI(){
+          const THEME_KEY = "guild_theme";
+
+          function applyTheme(theme){
+            const t = (theme === "dark") ? "dark" : "light";
+            document.documentElement.classList.toggle("theme-dark", t === "dark");
+            try{ localStorage.setItem(THEME_KEY, t); }catch(_){}
+          }
+
+          window.__themeApi = { apply: applyTheme, get: () => { try{ return localStorage.getItem(THEME_KEY) || "light"; }catch(_){ return "light"; } } };
+
+          function ensureSettingsMarkup(){
+            const host = document.getElementById("settings-mount");
+            if(!host) return;
+            if(host.dataset.ready === "1") return;
+            host.dataset.ready = "1";
+            host.innerHTML = `
+              <div class="space-y-6">
+                <div>
+                  <h2 class="text-xl font-bold text-gray-900">Ajustes</h2>
+                  <p class="text-gray-600 mt-1">Configurações gerais do painel.</p>
+                </div>
+
+                <div class="border border-gray-100 rounded-xl p-4">
+                  <h3 class="text-sm font-semibold text-gray-900">Tag (prefixo do nick)</h3>
+                  <p id="settings-tag-hint" class="text-xs text-gray-500 mt-1">Somente Líder pode alterar.</p>
+                  <div class="mt-3 flex gap-2">
+                    <input id="settings-tag-input" class="flex-1 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 outline-none focus:ring-2 ring-emerald-100" placeholder="Ex: ᵒᵗᵏ" />
+                    <button id="settings-save-tag" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">Salvar</button>
+                  </div>
+                </div>
+
+                <div class="border border-gray-100 rounded-xl p-4">
+                  <h3 class="text-sm font-semibold text-gray-900">Cor predominante do painel</h3>
+                  <p id="settings-color-hint" class="text-xs text-gray-500 mt-1">Somente Líder pode alterar.</p>
+                  <div class="mt-3 flex gap-2">
+                    <select id="settings-color-select" class="flex-1 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 outline-none focus:ring-2 ring-emerald-100 bg-white">
+                      <option value="green">Verde</option>
+                      <option value="blue">Azul</option>
+                      <option value="yellow">Amarelo</option>
+                      <option value="red">Vermelho</option>
+                      <option value="purple">Roxo</option>
+                      <option value="pink">Rosa</option>
+                      <option value="teal">Turquesa</option>
+                    </select>
+                    <button id="settings-save-color" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">Aplicar</button>
+                  </div>
+                </div>
+
+                <div class="border border-gray-100 rounded-xl p-4">
+                  <h3 class="text-sm font-semibold text-gray-900">Tema (somente para você)</h3>
+                  <p id="settings-theme-hint" class="text-xs text-gray-500 mt-1">Somente Líder/Admin pode mudar o tema.</p>
+                  <div class="mt-3 flex gap-2">
+                    <button id="settings-theme-light" class="flex-1 px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 font-semibold hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">Claro</button>
+                    <button id="settings-theme-dark" class="flex-1 px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 font-semibold hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">Escuro</button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+
+          function refreshForm(){
+            ensureSettingsMarkup();
+            const s = window.__globalSettings || {};
+            const tag = (s.tagPrefix || "").trim();
+            const accent = (s.accent || "green").trim();
+
+            const tagIn = document.getElementById("settings-tag-input");
+            const colorSel = document.getElementById("settings-color-select");
+            const tagHint = document.getElementById("settings-tag-hint");
+            const colorHint = document.getElementById("settings-color-hint");
+
+            if(tagIn) tagIn.value = tag || "";
+            if(colorSel) colorSel.value = (window.__settingsApi && window.__settingsApi.palettes && window.__settingsApi.palettes[accent]) ? accent : "green";
+
+            const role = (window.__session && window.__session.role) ? window.__session.role : null;
+            const isLeader = role === "leader";
+            const isAdmin = role === "admin";
+
+            if(tagIn) tagIn.disabled = !isLeader;
+            if(colorSel) colorSel.disabled = !isLeader;
+
+            const saveTagBtn = document.getElementById("settings-save-tag");
+            const saveColorBtn = document.getElementById("settings-save-color");
+            if(saveTagBtn) saveTagBtn.disabled = !isLeader;
+            if(saveColorBtn) saveColorBtn.disabled = !isLeader;
+
+            if(tagHint) tagHint.textContent = isLeader ? "Apenas Líder pode alterar (salva para todos)." : "Somente Líder pode alterar.";
+            if(colorHint) colorHint.textContent = isLeader ? "Apenas Líder pode alterar (salva para todos)." : "Somente Líder pode alterar.";
+
+            const canTheme = isLeader || isAdmin;
+            const themeHint = document.getElementById("settings-theme-hint");
+            if(themeHint) themeHint.textContent = canTheme ? "Muda só para você (local)." : "Somente Líder/Admin pode mudar o tema.";
+
+            const bLight = document.getElementById("settings-theme-light");
+            const bDark = document.getElementById("settings-theme-dark");
+            if(bLight) bLight.disabled = !canTheme;
+            if(bDark) bDark.disabled = !canTheme;
+          }
+
+          document.addEventListener("click", async (ev)=>{
+            const t = ev.target;
+            if(!(t instanceof HTMLElement)) return;
+
+            if(t.id === "settings-save-tag"){
+              ev.preventDefault();
+              try{
+                const v = (document.getElementById("settings-tag-input")?.value || "").trim();
+                await window.__settingsApi.setGlobal({ tagPrefix: v });
+                await window.__settingsApi.loadAndApply();
+                window.__toast && window.__toast("success","Tag atualizada.");
+                try{ window.dispatchEvent(new Event("guild:settings-updated")); }catch(_){}
+                refreshForm();
+              }catch(e){
+                window.__toast && window.__toast("error", e && e.message ? e.message : "Falha ao salvar.");
+              }
+            }
+
+            if(t.id === "settings-save-color"){
+              ev.preventDefault();
+              try{
+                const v = (document.getElementById("settings-color-select")?.value || "green").trim();
+                await window.__settingsApi.setGlobal({ accent: v });
+                await window.__settingsApi.loadAndApply();
+                window.__toast && window.__toast("success","Cor atualizada.");
+                try{ window.dispatchEvent(new Event("guild:settings-updated")); }catch(_){}
+                refreshForm();
+              }catch(e){
+                window.__toast && window.__toast("error", e && e.message ? e.message : "Falha ao salvar.");
+              }
+            }
+
+            if(t.id === "settings-theme-light"){
+              ev.preventDefault();
+              const role = window.__session && window.__session.role;
+              if(role === "leader" || role === "admin"){
+                applyTheme("light");
+                window.__toast && window.__toast("success","Tema claro aplicado.");
+              }
+            }
+            if(t.id === "settings-theme-dark"){
+              ev.preventDefault();
+              const role = window.__session && window.__session.role;
+              if(role === "leader" || role === "admin"){
+                applyTheme("dark");
+                window.__toast && window.__toast("success","Tema escuro aplicado.");
+              }
+            }
+          });
+
+          window.addEventListener("guild:settings-updated", refreshForm);
+          const mo = new MutationObserver(()=>{ if(document.getElementById("settings-mount")) refreshForm(); });
+          mo.observe(document.documentElement, { childList:true, subtree:true });
+        })();
+
+    </script>
+
+    <!-- App bundle (React + componentes) -->
+    <script src="./app.js" defer></script>
+  
+    <!-- Rodapé -->
+    <footer class="otk-footer">
+      <div class="otk-footer__inner">
+        <div class="otk-footer__left">
+          <span class="otk-footer__brand">Guilda e eventos</span>
+          <span class="otk-footer__sep">•</span>
+          <span class="otk-footer__muted">Painel interno</span>
+        </div>
+
+        <div class="otk-footer__right">
+          <a class="otk-footer__a" href="https://ottakubrasil.online" target="_blank" rel="noopener noreferrer">ottakubrasil.online</a>
+          <span class="otk-footer__sep">•</span>
+          <a class="otk-footer__a" href="https://instagram.com/ottakubrasil" target="_blank" rel="noopener noreferrer">@ottakubrasil</a>
+          <span class="otk-footer__sep">•</span>
+          <a class="otk-footer__a" href="https://instagram.com/gameotk" target="_blank" rel="noopener noreferrer">@gameotk</a>
+        </div>
+      </div>
+      <div class="otk-footer__bottom">
+        <span>© <span id="otk-year"></span> Ottaku Brasil</span>
+      </div>
+    </footer>
+    <script>
+      (function(){ var y=document.getElementById("otk-year"); if(y) y.textContent=new Date().getFullYear(); })();
+    </script>
+
+</body>
+</html>
