@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guild Manager - Dashboard</title>
+
+    <!-- Tailwind via CDN (sem build) -->
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              emerald: {
+                50: '#ecfdf5',
+                100: '#d1fae5',
+                200: '#a7f3d0',
+                400: '#34d399',
+                500: '#10b981',
+                600: '#059669',
+                700: '#047857',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- CSS global do projeto -->
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+
+  <body>
+    <div id="root" style="display:none;"></div>
+    <div id="login-screen" class="login-screen show" aria-hidden="false">
+      <div class="login-card" role="dialog" aria-modal="true" aria-label="Login">
+        <div class="login-brand">
+          <div class="login-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l8 4v7c0 5-3.4 9.4-8 9.4S4 18 4 13V6l8-4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="login-title">Guilda e eventos</div>
+            <div class="login-subtitle">Acesso restrito • Administradores</div>
+          </div>
+        </div>
+
+        <form id="login-form" class="login-form">
+          <label class="login-label" for="login-email">Email</label>
+          <input id="login-email" class="login-input" type="email" autocomplete="username" placeholder="seuemail@exemplo.com" required />
+
+          <label class="login-label" for="login-pass">Senha</label>
+          <input id="login-pass" class="login-input" type="password" autocomplete="current-password" placeholder="••••••••" required />
+
+          <button id="login-btn" class="login-btn" type="submit">
+            <span class="login-btnText">Entrar</span>
+            <span class="login-spinner" aria-hidden="true"></span>
+          </button>
+
+          <div class="login-hint">
+            Use um usuário criado no Firebase Authentication (Email/Senha).
+          </div>
+        </form>
+
+        <div class="login-footer">
+          <a href="https://ottakubrasil.online" target="_blank" rel="noopener noreferrer">ottakubrasil.online</a>
+          <span>•</span>
+          <a href="https://instagram.com/ottakubrasil" target="_blank" rel="noopener noreferrer">@ottakubrasil</a>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Firebase (Firestore) + Toast (sem login) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+        signOut
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        setDoc,
+        doc,
+        deleteDoc,
+        serverTimestamp,
+        getDoc,
+        updateDoc,
+        arrayUnion,
+        arrayRemove
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyA5uana2jcnWCkY3vqpotbpoQKxy7bTMtU",
+        authDomain: "guilda-otk.firebaseapp.com",
+        projectId: "guilda-otk",
+        storageBucket: "guilda-otk.firebasestorage.app",
+        messagingSenderId: "628349020809",
+        appId: "1:628349020809:web:be1457404159f9ea2a3458",
+        measurementId: "G-65FGV5MT0N"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+
+      // Roles: Admin vs Líder
+      const __SECURITY_DOC = doc(db, "guildConfig", "security");
+
+      async function __getSecurity(){
+        const snap = await getDoc(__SECURITY_DOC);
+        const data = snap.exists() ? snap.data() : {};
+        const admins = Array.isArray(data.admins) ? data.admins.map(e=>String(e).toLowerCase().trim()).filter(Boolean) : [];
+        const leaders = Array.isArray(data.leaders) ? data.leaders.map(e=>String(e).toLowerCase().trim()).filter(Boolean) : [];
+        return { admins, leaders };
+      }
+
+      async function __resolveRole(){
+        const u = auth.currentUser;
+        if(!u || !u.email) return null;
+        const email = String(u.email).toLowerCase().trim();
+        const sec = await __getSecurity();
+        const role = sec.admins.includes(email) ? "admin" : (sec.leaders.includes(email) ? "leader" : null);
+        window.__session = { email, role };
+        try{ sessionStorage.setItem("__session", JSON.stringify(window.__session)); }catch(_){ }
+        return window.__session;
+      }
+
+      // Auth secundário para criar contas sem deslogar o usuário atual
+      const __secondaryApp = initializeApp(firebaseConfig, "secondary");
+      const __secondaryAuth = getAuth(__secondaryApp);
+
+      window.__adminApi = {
+        // Apenas líder pode usar
+        async createUser(email, password){
+          const me = await __resolveRole();
+          if(!me || me.role !== "leader") throw new Error("Apenas Líder pode criar contas.");
+          const e = String(email||"").trim();
+          const p = String(password||"").trim();
+          if(!e || !p) throw new Error("Informe email e senha.");
+          await createUserWithEmailAndPassword(__secondaryAuth, e, p);
+          // limpa sessão secundária
+          try{ await signOut(__secondaryAuth); }catch(_){}
+          return true;
+        },
+        async addAdminEmail(email){
+          const me = await __resolveRole();
+          if(!me || me.role !== "leader") throw new Error("Apenas Líder pode adicionar Admin.");
+          const e = String(email||"").toLowerCase().trim();
+          if(!e) throw new Error("Informe o email.");
+          await setDoc(__SECURITY_DOC, { admins: arrayUnion(e) }, { merge: true });
+          return true;
+        },
+        async removeAdminEmail(email){
+          const me = await __resolveRole();
+          if(!me || me.role !== "leader") throw new Error("Apenas Líder pode remover Admin.");
+          const e = String(email||"").toLowerCase().trim();
+          if(!e) throw new Error("Informe o email.");
+          await setDoc(__SECURITY_DOC, { admins: arrayRemove(e) }, { merge: true });
+          return true;
+        },
+        async addLeaderEmail(email){
+          const me = await __resolveRole();
+          if(!me || me.role !== "leader") throw new Error("Apenas Líder pode adicionar Líder.");
+          const e = String(email||"").toLowerCase().trim();
+          if(!e) throw new Error("Informe o email.");
+          await setDoc(__SECURITY_DOC, { leaders: arrayUnion(e) }, { merge: true });
+          return true;
+        },
+        async removeLeaderEmail(email){
+          const me = await __resolveRole();
+          if(!me || me.role !== "leader") throw new Error("Apenas Líder pode remover Líder.");
+          const e = String(email||"").toLowerCase().trim();
+          if(!e) throw new Error("Informe o email.");
+          await setDoc(__SECURITY_DOC, { leaders: arrayRemove(e) }, { merge: true });
+          return true;
+        },
+        async listLeaders(){
+          const me = await __resolveRole();
+          if(!me) throw new Error("Faça login.");
+          return (await __getSecurity()).leaders;
+        },
+
+        async listAdmins(){
+          const me = await __resolveRole();
+          if(!me) throw new Error("Faça login.");
+          return (await __getSecurity()).admins;
+        },
+        async ensureRole(){
+          return await __resolveRole();
+        }
+      };
+
+
+
+      // Auth API exposta para scripts não-module (UI)
+      window.__authApi = {
+        signIn: (email, pass) => signInWithEmailAndPassword(auth, email, pass),
+        signOut: () => signOut(auth),
+        onChange: (cb) => onAuthStateChanged(auth, cb),
+        currentUser: () => auth.currentUser
+      };
+
+      function __requireAuth(){
+        const u = auth.currentUser;
+        if(!u) throw new Error("Você precisa estar logado para acessar os dados.");
+        return u;
+      }
+
+      // Store em memória (substitui localStorage por completo)
+      window.__guildLS = (() => {
+        const mem = Object.create(null);
+        return {
+          getItem: (k) => (k in mem ? mem[k] : null),
+          setItem: (k, v) => { mem[k] = String(v); },
+          removeItem: (k) => { delete mem[k]; }
+        };
+      })();
+
+      // Toast customizado
+      (function setupToast(){
+        const container = document.createElement("div");
+        container.id = "toast-root";
+        container.style.position = "fixed";
+        container.style.zIndex = "9999";
+        container.style.right = "16px";
+        container.style.top = "16px";
+        container.style.display = "flex";
+        container.style.flexDirection = "column";
+        container.style.gap = "10px";
+        document.body.appendChild(container);
+
+        window.__toast = function(type, message){
+          const el = document.createElement("div");
+          const isOk = type === "success";
+          el.style.minWidth = "240px";
+          el.style.maxWidth = "320px";
+          el.style.padding = "12px 14px";
+          el.style.borderRadius = "14px";
+          el.style.boxShadow = "0 18px 40px rgba(0,0,0,.15)";
+          el.style.background = "#ffffff";
+          el.style.border = isOk ? "1px solid rgba(16,185,129,.25)" : "1px solid rgba(239,68,68,.25)";
+          el.style.fontFamily = "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+          el.style.display = "flex";
+          el.style.gap = "10px";
+          el.style.alignItems = "flex-start";
+          el.style.transform = "translateY(-6px)";
+          el.style.opacity = "0";
+          el.style.transition = "all .18s ease";
+
+          const dot = document.createElement("div");
+          dot.style.width = "10px";
+          dot.style.height = "10px";
+          dot.style.borderRadius = "999px";
+          dot.style.marginTop = "4px";
+          dot.style.background = isOk ? "#10b981" : "#ef4444";
+
+          const txt = document.createElement("div");
+          const title = document.createElement("div");
+          title.style.fontWeight = "800";
+          title.style.fontSize = "13px";
+          title.style.color = "#111827";
+          title.textContent = isOk ? "Sucesso" : "Erro";
+
+          const body = document.createElement("div");
+          body.style.fontSize = "12px";
+          body.style.color = "#4b5563";
+          body.style.marginTop = "2px";
+          body.textContent = message || "";
+
+          txt.appendChild(title);
+          txt.appendChild(body);
+
+          el.appendChild(dot);
+          el.appendChild(txt);
+          container.appendChild(el);
+
+          requestAnimationFrame(() => { el.style.opacity = "1"; el.style.transform = "translateY(0)"; });
+          setTimeout(() => {
+            el.style.opacity = "0";
+            el.style.transform = "translateY(-6px)";
+            setTimeout(() => el.remove(), 220);
+          }, 3200);
+        };
+      })();
+
+      // Firestore API (coleção: "membros")
+      window.__guildDB = {
+        async getMembers(){
+          const snap = await getDocs(collection(db, "membros"));
+          const arr = [];
+          snap.forEach(d => {
+            const data = d.data() || {};
+            // garante id
+            arr.push({ id: d.id, ...data, id: d.id });
+          });
+          // ordena por nick (opcional)
+          arr.sort((a,b)=> String(a.nick||"").localeCompare(String(b.nick||""), "pt-BR"));
+          return arr;
+        },
+        async addMember(member){
+          const clean = { ...member };
+          // remove data de entrada se vier por acaso
+          delete clean.joinDate;
+          clean.updatedAt = serverTimestamp();
+          await setDoc(doc(db, "membros", clean.id), clean, { merge: true });
+        },
+        async updateMember(id, patch){
+          const clean = { ...patch };
+          delete clean.joinDate;
+          clean.updatedAt = serverTimestamp();
+          await setDoc(doc(db, "membros", id), clean, { merge: true });
+        },
+        async deleteMember(id){
+          await deleteDoc(doc(db, "membros", id));
+        }
+      };
+
+      // Remove campo "Data de Entrada" visualmente (garantia extra, sem depender do bundle)
+      (function hideJoinDateField(){
+        const kill = () => {
+          const labels = Array.from(document.querySelectorAll("label"));
+          labels.forEach(l => {
+            if ((l.textContent || "").trim() === "Data de Entrada") {
+              const wrap = l.closest("div");
+              if (wrap) wrap.remove();
+            }
+          });
+        };
+        new MutationObserver(kill).observe(document.documentElement, { childList: true, subtree: true });
+      })();
+    
+
+      // Atualiza role ao mudar sessão (e garante menu correto)
+      onAuthStateChanged(auth, async (u) => {
+        try{
+          if(u){
+            const s = await window.__adminApi.ensureRole();
+            if(!s || !s.role){
+              try{ window.__toast && window.__toast("error","Email não autorizado (não está em leaders/admins)."); }catch(_){}
+              try{ sessionStorage.removeItem("__session"); }catch(_){}
+              try{ await signOut(auth); }catch(_){}
+              return;
+            }
+            // Debug leve
+            try{ window.__toast && window.__toast("info","Perfil: "+s.role+" • "+s.email); }catch(_){}
+
+            // Garante que o app renderize com o role correto (evita só Dashboard)
+            try{
+              const k="__role_boot";
+              if(sessionStorage.getItem(k)!=="1"){
+                sessionStorage.setItem(k,"1");
+                location.reload();
+              }
+            }catch(_){}
+          }else{
+            window.__session = null;
+            try{ sessionStorage.removeItem("__session"); sessionStorage.removeItem("__role_boot"); }catch(_){}
+          }
+        }catch(e){
+          try{ window.__toast && window.__toast("error","Falha ao validar perfil."); }catch(_){}
+        }
+      });
+</script>
+
+
+    <script>
+      // Auth UI (Login) - modular + feedback + fix tela vazia
+      (function(){
+        const root = document.getElementById("root");
+        const loginScreen = document.getElementById("login-screen");
+        const form = document.getElementById("login-form");
+        const emailEl = document.getElementById("login-email");
+        const passEl = document.getElementById("login-pass");
+        const btn = document.getElementById("login-btn");
+
+        let authResolved = false;
+        let welcomedThisSession = false;
+
+        function setLoading(v){
+          if(!btn) return;
+          btn.disabled = !!v;
+          btn.classList.toggle("is-loading", !!v);
+        }
+        function showLogin(){
+          if(root) root.style.display = "none";
+          if(loginScreen){ loginScreen.classList.add("show"); loginScreen.setAttribute("aria-hidden","false"); }
+        }
+        function showApp(){
+          if(loginScreen){ loginScreen.classList.remove("show"); loginScreen.setAttribute("aria-hidden","true"); }
+          if(root) root.style.display = "";
+        }
+        function toast(type, msg){ window.__toast && window.__toast(type, msg); }
+
+        function friendlyAuthError(err){
+          const code = (err && err.code) ? String(err.code) : "";
+          if(code.includes("auth/invalid-email")) return "Email inválido.";
+          if(code.includes("auth/user-not-found")) return "Conta não encontrada. Verifique o email.";
+          if(code.includes("auth/wrong-password")) return "Senha incorreta. Tente novamente.";
+          if(code.includes("auth/invalid-credential")) return "Email ou senha incorretos.";
+          if(code.includes("auth/too-many-requests")) return "Muitas tentativas. Aguarde alguns minutos e tente de novo.";
+          if(code.includes("auth/network-request-failed")) return "Falha de rede. Verifique sua conexão.";
+          return (err && err.message) ? err.message : "Falha no login.";
+        }
+
+        function waitAuthApi(){
+          return new Promise((resolve)=>{
+            const t0 = Date.now();
+            const tick = () => {
+              if(window.__authApi) return resolve(window.__authApi);
+              if(Date.now() - t0 > 8000) return resolve(null);
+              setTimeout(tick, 60);
+            };
+            tick();
+          });
+        }
+
+        function reloadOnce(flag){
+          try{
+            const k = "__reload_" + flag;
+            if(sessionStorage.getItem(k) === "1") return;
+            sessionStorage.setItem(k, "1");
+            location.reload();
+          }catch(_){}
+        }
+
+        (async ()=>{
+          const api = await waitAuthApi();
+          if(!api){
+            toast("error","Firebase Auth não carregou. Verifique sua conexão/hosting.");
+            showLogin();
+            return;
+          }
+
+          window.__logout = async function(){
+            try{ await api.signOut(); toast("success","Você saiu da conta."); showLogin(); }
+            catch(e){ toast("error","Erro ao sair."); }
+          };
+
+          // Se a sessão estiver válida, mas o app não montar por timing, recarrega uma vez
+          setTimeout(()=>{
+            const hasUser = api.currentUser && api.currentUser();
+            const isEmpty = root && root.childElementCount === 0;
+            if(hasUser && isEmpty) reloadOnce("mount");
+          }, 1200);
+
+          setTimeout(()=>{ if(!authResolved) toast("info","Verificando sessão..."); }, 250);
+
+          api.onChange((user)=>{
+            authResolved = true;
+            if(user){
+              showApp();
+              if(!welcomedThisSession){ welcomedThisSession = true; toast("success","Login confirmado. Bem-vindo!"); }
+              // Caso a UI principal ainda não tenha montado, recarrega
+              if(root && root.childElementCount === 0) reloadOnce("afterlogin");
+            }else{
+              showLogin();
+            }
+          });
+
+          if(form){
+            form.addEventListener("submit", async (ev)=>{
+              ev.preventDefault();
+              const email = (emailEl && emailEl.value || "").trim();
+              const pass = (passEl && passEl.value || "").trim();
+              if(!email || !pass){ toast("error","Preencha email e senha."); return; }
+
+              setLoading(true);
+              toast("info","Autenticando...");
+
+              try{
+                await api.signIn(email, pass);
+                toast("success","Login realizado com sucesso.");
+                showApp();
+                // Recarrega uma vez para garantir que o React inicie já autenticado
+                reloadOnce("signin");
+              }catch(err){
+                toast("error", friendlyAuthError(err));
+                showLogin();
+              }finally{
+                setLoading(false);
+              }
+            });
+          }
+        })();
+      })();
+    </script>
+
+    <!-- App bundle (React + componentes) -->
+    <script src="./app.js" defer></script>
+  
+    <!-- Rodapé -->
+    <footer class="otk-footer">
+      <div class="otk-footer__inner">
+        <div class="otk-footer__left">
+          <span class="otk-footer__brand">Guilda e eventos</span>
+          <span class="otk-footer__sep">•</span>
+          <span class="otk-footer__muted">Painel interno</span>
+        </div>
+
+        <div class="otk-footer__right">
+          <a class="otk-footer__a" href="https://ottakubrasil.online" target="_blank" rel="noopener noreferrer">ottakubrasil.online</a>
+          <span class="otk-footer__sep">•</span>
+          <a class="otk-footer__a" href="https://instagram.com/ottakubrasil" target="_blank" rel="noopener noreferrer">@ottakubrasil</a>
+          <span class="otk-footer__sep">•</span>
+          <a class="otk-footer__a" href="https://instagram.com/gameotk" target="_blank" rel="noopener noreferrer">@gameotk</a>
+        </div>
+      </div>
+      <div class="otk-footer__bottom">
+        <span>© <span id="otk-year"></span> Ottaku Brasil</span>
+      </div>
+    </footer>
+    <script>
+      (function(){ var y=document.getElementById("otk-year"); if(y) y.textContent=new Date().getFullYear(); })();
+    </script>
+
+</body>
+</html>
