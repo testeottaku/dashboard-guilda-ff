@@ -23,7 +23,7 @@
         </div>
         <div>
           <div class="text-base font-black text-gray-900 leading-tight">Guilda HUB</div>
-          <div class="text-xs text-gray-500 font-medium">Acesso sua conta</div>
+          <div class="text-xs text-gray-500 font-medium">Acesse sua conta</div>
         </div>
       </div>
 
@@ -42,9 +42,46 @@
         </button>
 
         <div class="text-[10px] text-gray-400 text-center leading-tight px-2">
-          Use um usuário de Lider ou admin de Guilda
+          Use um usuário de Lider ou admin de Guilda (ou login de jogador)
         </div>
       </form>
+    <!-- Alternar Login/Criar conta -->
+    <div class="mt-4 flex items-center justify-center gap-2 text-sm text-slate-600">
+      <span id="login-hint">Não tem conta?</span>
+      <button id="btn-show-signup" type="button" class="font-semibold text-emerald-700 hover:underline">Criar conta</button>
+      <button id="btn-show-login" type="button" class="hidden font-semibold text-emerald-700 hover:underline">Voltar para Login</button>
+    </div>
+
+    <!-- Formulário de criação de conta -->
+    <form id="signup-form" class="hidden mt-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1" for="username">Nome de usuário (Guilda)</label>
+        <input id="username" type="text" required
+          class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200"
+          placeholder="Ex: OttakuBrasil" />
+        <p class="mt-1 text-xs text-slate-500">Esse nome identifica sua guilda.</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1" for="signup-email">Email</label>
+        <input id="signup-email" type="email" required
+          class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200"
+          placeholder="seuemail@email.com" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1" for="signup-password">Senha</label>
+        <input id="signup-password" type="password" required minlength="6"
+          class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200"
+          placeholder="mínimo 6 caracteres" />
+      </div>
+
+      <button id="btn-signup" type="submit"
+        class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60">
+        <span>Criar conta</span>
+      </button>
+    </form>
+
 
       <div class="mt-5 pt-4 border-t border-gray-100 flex justify-center gap-3 text-[11px] font-bold text-gray-400">
         <a href="https://ottakubrasil.online" target="_blank" class="text-emerald-600 hover:underline">ottakubrasil.online</a>
@@ -55,8 +92,8 @@
   </div>
 
   <script type="module">
-    import { auth, showToast, checkAuth } from './logic.js';
-    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { auth, showToast, checkAuth, finalizeSignup } from './logic.js';
+    import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     // Se já estiver logado, vai pro dashboard
     checkAuth(false).then(user => {
@@ -84,7 +121,67 @@
         btn.innerHTML = '<span>Entrar</span>';
       }
     });
-  </script>
+  
+    // Alternância de telas
+    const btnShowSignup = document.getElementById('btn-show-signup');
+    const btnShowLogin = document.getElementById('btn-show-login');
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+    const loginHint = document.getElementById('login-hint');
+
+    function showSignup() {
+      loginForm.classList.add('hidden');
+      signupForm.classList.remove('hidden');
+      btnShowSignup.classList.add('hidden');
+      btnShowLogin.classList.remove('hidden');
+      if (loginHint) loginHint.textContent = "Já tem conta?";
+    }
+    function showLogin() {
+      signupForm.classList.add('hidden');
+      loginForm.classList.remove('hidden');
+      btnShowLogin.classList.add('hidden');
+      btnShowSignup.classList.remove('hidden');
+      if (loginHint) loginHint.textContent = "Não tem conta?";
+    }
+
+    btnShowSignup?.addEventListener('click', showSignup);
+    btnShowLogin?.addEventListener('click', showLogin);
+
+    // Criar conta (username + email + senha)
+    signupForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const pass = document.getElementById('signup-password').value;
+
+      const btn = document.getElementById('btn-signup');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-spinner"></span>';
+
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        await finalizeSignup(cred.user, username);
+
+        showToast('success', 'Conta criada com sucesso!');
+        window.location.href = "dashboard.html?login=1";
+      } catch (err) {
+        console.error(err);
+        // Se criou no Auth mas falhou no Firestore, fazemos signOut para não entrar em loop.
+        try { await signOut(auth); } catch(_) {}
+
+        let msg = "Não foi possível criar a conta.";
+        if (err.code === 'auth/email-already-in-use') msg = "Esse e-mail já está em uso.";
+        if (err.code === 'auth/weak-password') msg = "Senha fraca (mínimo 6 caracteres).";
+        if (String(err?.code || '').includes('permission-denied') || String(err?.message || '').includes('permission')) {
+          msg = "Conta criada no login, mas o Firestore bloqueou a criação da guilda/config (permissões nas regras).";
+        }
+        showToast('error', msg);
+        btn.disabled = false;
+        btn.innerHTML = '<span>Criar conta</span>';
+      }
+    });
+</script>
 
   <!-- OTK Footer -->
   <footer id="otk-footer" class="mt-12 border-t border-emerald-500/10 bg-slate-950 text-white">

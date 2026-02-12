@@ -31,14 +31,26 @@
         <a href="dashboard.html" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
           <i data-lucide="house" class="w-5 h-5"></i> Dashboard
         </a>
-        <a href="members.html" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-emerald-50 text-emerald-700 shadow-sm">
+        <a href="membros.html" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-emerald-50 text-emerald-700 shadow-sm">
           <i data-lucide="users" class="w-5 h-5"></i> Membros
+        </a>
+        <a href="lines.html" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
+          <i data-lucide="layers" class="w-5 h-5"></i> Lines
+        </a>
+        <a href="ajustes.html" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
+          <i data-lucide="sliders" class="w-5 h-5"></i> Ajustes
+        </a>
+        <a href="upgrade.html" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
+          <i data-lucide="sparkles" class="w-5 h-5"></i> Upgrade
         </a>
         <a href="camp.html" class="only-leader w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
           <i data-lucide="trophy" class="w-5 h-5"></i> Campeonato
         </a>
         <a href="admin.html" class="only-leader w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
           <i data-lucide="settings" class="w-5 h-5"></i> Admin
+        </a>
+        <a id="nav-chefe" href="chefe.html" class="hidden w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
+          <i data-lucide="crown" class="w-5 h-5"></i> Chefe
         </a>
       </nav>
       <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
@@ -175,14 +187,35 @@
   </div>
 
   <script type="module">
-    import { checkAuth, setupSidebar, initIcons, logout, db, showToast } from './logic.js';
+    import { checkAuth, setupSidebar, initIcons, logout, db, showToast, getMemberTagConfig, getGuildContext } from './logic.js';
     import { collection, getDocs, setDoc, doc, deleteDoc, serverTimestamp, query, where, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // Inicialização IMEDIATA
+    // Inicialização IMEDIATA (menu + ícones). Isso evita o "botão do menu sumir"
+    // quando a lista ainda não renderizou.
     setupSidebar();
+    initIcons();
     
     // Variável para armazenar a lista na memória
     let membersCache = [];
+
+    // Tag configurável (Firestore: configGuilda/{uid}.tagMembros)
+    let memberTag = null;
+
+    function escapeRegExp(str) {
+      return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function stripKnownTags(nick) {
+      const raw = String(nick || "").trim();
+      // Remove a tag configurada (se existir) e também tags antigas (compat)
+      const candidates = [memberTag, "ᵒᵗᵏ", "otk"];
+      for (const t of candidates) {
+        if (!t) continue;
+        const re = new RegExp("^" + escapeRegExp(String(t).trim()) + "\\s+", "i");
+        if (re.test(raw)) return raw.replace(re, "").trim();
+      }
+      return raw;
+    }
 
     // --- LÓGICA DE CACHE SEM PISCAR ---
     // 1. Tenta carregar do cache IMEDIATAMENTE antes de qualquer auth
@@ -203,6 +236,20 @@
     checkAuth().then(async (user) => {
       if(!user) return;
       document.getElementById('btn-logout').onclick = logout;
+
+      // Carrega a tag configurada (se existir)
+      memberTag = await getMemberTagConfig();
+
+      // Se marcar "Tem Tag" sem tag configurada, avisa e desfaz
+      const hasTagEl = document.getElementById('has-tag');
+      if (hasTagEl) {
+        hasTagEl.addEventListener('change', () => {
+          if (hasTagEl.checked && !memberTag) {
+            showToast('error', 'Nenhuma tag configurada. Configure em Ajustes.');
+            hasTagEl.checked = false;
+          }
+        });
+      }
       
       // Carrega do servidor (Background Update)
       // Se já temos cache, não passamos "true" para não mostrar loading visual
@@ -227,7 +274,7 @@
       }
 
       try {
-        const snap = await getDocs(collection(db, "membros"));
+        const snap = await getDocs(collection(db, "guildas", getGuildContext().guildId, "membros"));
         const newMembers = [];
         snap.forEach(d => newMembers.push({ id: d.id, ...d.data() }));
         newMembers.sort((a,b)=> String(a.nick).localeCompare(String(b.nick)));
@@ -252,6 +299,12 @@
 
       } catch(err) {
         console.error(err);
+        // ✅ Nunca deixe a UI travada em "Carregando..."
+        membersCache = [];
+        localStorage.setItem('membersList', JSON.stringify([]));
+        renderList([]);
+        document.getElementById('member-count').textContent = `0 membros na guilda`;
+
         if(forceRefresh) showToast('error', 'Erro ao buscar dados.');
       }
     };
@@ -346,7 +399,7 @@
       if(!m) return;
       document.getElementById('member-id').value = m.id;
       document.getElementById('visible-id').value = m.visibleId;
-      document.getElementById('nick').value = m.nick.replace(/^ᵒᵗᵏ\s+/i,"").replace(/^otk\s+/i,"");
+      document.getElementById('nick').value = stripKnownTags(m.nick);
       document.getElementById('whatsapp').value = m.whatsapp;
       document.getElementById('guild-war').checked = m.guildWar;
       document.getElementById('guild-war-meta').value = m.guildWarMeta;
@@ -362,7 +415,7 @@
     window.deleteMember = async (id) => {
       if(!confirm('Tem certeza?')) return;
       try {
-        await deleteDoc(doc(db, "membros", id));
+        await deleteDoc(doc(db, "guildas", getGuildContext().guildId, "membros", id));
         showToast('success', 'Membro excluído.');
         // Força refresh após excluir
         loadMembers(true);
@@ -409,7 +462,12 @@
 
       const rawNick = document.getElementById('nick').value.trim();
       const hasTag = document.getElementById('has-tag').checked;
-      const finalNick = hasTag ? "ᵒᵗᵏ " + rawNick : rawNick;
+      if (hasTag && !memberTag) {
+        showToast('error', 'Nenhuma tag configurada. Vá em Ajustes e configure antes.');
+        return;
+      }
+      const tagPrefix = hasTag ? (memberTag.trim() + ' ') : '';
+      const finalNick = tagPrefix + rawNick;
 
       const payload = {
         visibleId,
@@ -426,10 +484,10 @@
 
       try {
         if(id) {
-          await setDoc(doc(db, "membros", id), payload, { merge: true });
+          await setDoc(doc(db, "guildas", getGuildContext().guildId, "membros", id), payload, { merge: true });
           showToast('success', 'Atualizado!');
         } else {
-          const newRef = doc(collection(db, "membros"));
+          const newRef = doc(collection(db, "guildas", getGuildContext().guildId, "membros"));
           await setDoc(newRef, payload);
           showToast('success', 'Criado!');
         }
