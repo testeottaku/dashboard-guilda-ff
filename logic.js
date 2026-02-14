@@ -58,7 +58,8 @@ try {
         email: String(cached.email),
         uid: String(cached.uid),
         vipTier: cached.vipTier ? String(cached.vipTier) : 'free'
-      };
+      ,
+        vipExpiresAtMs: (cached.vipExpiresAtMs != null ? Number(cached.vipExpiresAtMs) : null)};
     }
   }
 } catch (_) {}
@@ -82,6 +83,53 @@ export function getGuildContext() {
 
 export function getVipTier() {
   return (__guildCtx && __guildCtx.vipTier) ? String(__guildCtx.vipTier) : 'free';
+}
+
+export function getVipExpiresAtMs() {
+  return (__guildCtx && __guildCtx.vipExpiresAtMs != null) ? Number(__guildCtx.vipExpiresAtMs) : null;
+}
+
+
+function __maybeDowngradeVipSync() {
+  try {
+    if (!__guildCtx) return;
+    const tier = String(__guildCtx.vipTier || 'free');
+    const exp = (__guildCtx.vipExpiresAtMs != null) ? Number(__guildCtx.vipExpiresAtMs) : null;
+    if (tier !== 'free' && exp != null && isFinite(exp) && Date.now() > exp) {
+      __guildCtx.vipTier = 'free';
+      __guildCtx.vipExpiresAtMs = null;
+      try {
+        localStorage.setItem(__GUILDCTX_LS_KEY, JSON.stringify({
+          guildId: __guildCtx.guildId,
+          guildName: __guildCtx.guildName,
+          role: __guildCtx.role,
+          vipTier: __guildCtx.vipTier,
+          vipExpiresAtMs: __guildCtx.vipExpiresAtMs,
+          email: __guildCtx.email,
+          uid: __guildCtx.uid,
+          ts: Date.now()
+        }));
+      } catch (_) {}
+
+      // tenta gravar no banco (não bloqueia UI)
+      try {
+        setDoc(doc(db, 'configGuilda', __guildCtx.guildId), { vipTier: 'free', vipExpiresAt: null, updatedAt: serverTimestamp() }, { merge: true });
+      } catch (_) {}
+      try {
+        setDoc(doc(db, 'guildas', __guildCtx.guildId), { vipTier: 'free', updatedAt: serverTimestamp() }, { merge: true });
+      } catch (_) {}
+    }
+  } catch (_) {}
+}
+
+export function getVipRemainingDays() {
+  __maybeDowngradeVipSync();
+  const ms = getVipExpiresAtMs();
+  if (!ms) return null;
+  const diff = ms - Date.now();
+  if (!isFinite(diff)) return null;
+  const days = Math.ceil(diff / 86400000);
+  return Math.max(0, days);
 }
 
 function vipTierFromValue(v) {
@@ -562,15 +610,30 @@ export function checkAuth(redirectToLogin = true) {
       const guildName = await getGuildName(guildId);
 
       let vipTier = 'free';
+      let vipExpiresAtMs = null;
+
+      // Preferência: vipTier e vipExpiresAt vêm de /configGuilda/{guildId}
       try {
         const cfgSnap = await getDoc(doc(db, "configGuilda", guildId));
         if (cfgSnap.exists()) {
           const cfg = cfgSnap.data() || {};
           const rawVip = cfg.vipTier ?? cfg.vip ?? cfg.planoVip ?? cfg.planoVIP ?? cfg.vipLevel ?? cfg.vipPlano ?? cfg.vipName ?? cfg.plano ?? cfg.plan ?? cfg.tier;
           vipTier = vipTierFromValue(rawVip);
+
+          // vipExpiresAt pode ser Timestamp, número (ms) ou string ISO — aceitamos qualquer um sem quebrar
+          const rawExp = cfg.vipExpiresAt ?? cfg.vipExpiraEm ?? cfg.vipExpireAt ?? cfg.expiresAt ?? cfg.vipExpires;
+          if (rawExp && typeof rawExp.toMillis === 'function') {
+            vipExpiresAtMs = rawExp.toMillis();
+          } else if (typeof rawExp === 'number') {
+            vipExpiresAtMs = rawExp;
+          } else if (typeof rawExp === 'string') {
+            const t = Date.parse(rawExp);
+            vipExpiresAtMs = isFinite(t) ? t : null;
+          }
         }
       } catch (_) {}
 
+      // Fallback: se configGuilda não tiver vipTier, tenta /guildas/{guildId}
       if (!vipTier || vipTier === 'free') {
         try {
           const gSnap = await getDoc(doc(db, "guildas", guildId));
@@ -583,18 +646,35 @@ export function checkAuth(redirectToLogin = true) {
         } catch (_) {}
       }
 
+      // ✅ Verificação automática de expiração (somente se vipExpiresAt existir)
+      if (vipTier && vipTier !== 'free' && vipExpiresAtMs != null && isFinite(vipExpiresAtMs)) {
+        if (Date.now() > vipExpiresAtMs) {
+          vipTier = 'free';
+          vipExpiresAtMs = null;
+
+          // Tenta gravar no banco (não quebra caso não tenha permissão)
+          try {
+            await setDoc(doc(db, 'configGuilda', guildId), { vipTier: 'free', vipExpiresAt: null, updatedAt: serverTimestamp() }, { merge: true });
+          } catch (_) {}
+          try {
+            await setDoc(doc(db, 'guildas', guildId), { vipTier: 'free', updatedAt: serverTimestamp() }, { merge: true });
+          } catch (_) {}
+        }
+      }
+
 
       __guildCtx = {
         guildId,
         guildName,
         role,
         vipTier,
+        vipExpiresAtMs,
         email: emailLower,
         uid: user.uid
       };
 
       try {
-        localStorage.setItem(__GUILDCTX_LS_KEY, JSON.stringify({ guildId, guildName, role, vipTier, email: emailLower, uid: user.uid, ts: Date.now() }));
+        localStorage.setItem(__GUILDCTX_LS_KEY, JSON.stringify({ guildId, guildName, role, vipTier, vipExpiresAtMs, email: emailLower, uid: user.uid, ts: Date.now() }));
       } catch (_) {}
       try { applyVipUiAndGates(vipTier); } catch (_) {}
 
@@ -718,7 +798,9 @@ export function applyVipUiAndGates(tierRaw) {
 
   const vipLabel = document.getElementById("vip-label");
   if (vipLabel) {
-    vipLabel.innerHTML = `Guilda: <span class="font-bold text-gray-800">${tier}</span>`;
+    const days = getVipRemainingDays();
+    const daysTxt = (tier !== 'free' && days != null) ? ` • ${days} dias` : '';
+    vipLabel.innerHTML = `Guilda: <span class="font-bold text-gray-800">${tier.toUpperCase()}${daysTxt}</span>`;
   }
 
   __ensureVipTagsIndex();
