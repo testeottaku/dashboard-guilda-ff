@@ -1,0 +1,12 @@
+{
+  "name": "guilda-hub",
+  "private": true,
+  "version": "0.0.1",
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.2.0",
+    "node-fetch": "^3.3.2"
+  }
+}
