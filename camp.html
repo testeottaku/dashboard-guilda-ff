@@ -77,7 +77,7 @@
   <!-- Modal Camp (Mantido igual) -->
   <div id="camp-modal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center hidden">
     <div class="fixed inset-0 bg-black/40" onclick="closeCampModal()"></div>
-    <div class="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto animate-in">
+    <div class="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto overscroll-contain animate-in" style="padding-bottom: env(safe-area-inset-bottom);">
       <div class="flex items-center justify-between p-5 border-b border-gray-100 bg-white rounded-t-2xl sticky top-0">
         <h3 id="camp-modal-title" class="text-lg font-bold text-gray-900">Novo Campeonato</h3>
         <button onclick="closeCampModal()" class="p-2 text-gray-400 hover:bg-gray-100 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -96,9 +96,97 @@
           <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Data</label><input id="camp-date" type="date" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"></div>
           <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Horário</label><input id="camp-time" type="time" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"></div>
         </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Guilda (automático)</label>
+          <input id="camp-guildname" type="text" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-600" disabled>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Formato *</label>
+          <select id="camp-format" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white" required>
+            <option value="br">Battle Royale</option>
+            <option value="xvx">XvX (1v1 até 4v4)</option>
+          </select>
+        </div>
+
+        <div id="br-fields" class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Modo (BR) *</label>
+            <select id="camp-mode" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+              <option value="solo">SOLO</option>
+              <option value="duo">DUO</option>
+              <option value="squad">SQUAD</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Quedas *</label>
+            <select id="camp-drops" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white"></select>
+          </div>
+        </div>
+
+        <div id="xvx-fields" class="grid grid-cols-2 gap-3 hidden">
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Confronto *</label>
+            <select id="camp-xvx" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+              <option value="1v1">1v1</option>
+              <option value="2v2">2v2</option>
+              <option value="3v3">3v3</option>
+              <option value="4v4">4v4</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Inscrição *</label>
+            <select id="camp-feeType" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+              <option value="free">Gratuito</option>
+              <option value="paid">Pago</option>
+            </select>
+          </div>
+          <div id="fee-value-wrap" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Valor (R$)</label>
+            <input id="camp-feeValue" type="number" step="0.01" min="0" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ex: 5,00">
+          </div>
+        </div>
+
+                <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Premiação total (R$) (opcional)</label>
+          <input id="camp-prizeTotal" type="text" inputmode="decimal" autocomplete="off"
+                 class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+                 placeholder="Ex: 1500,00">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Link para informações (obrigatório) *</label>
+          <input id="camp-link" type="url"
+                 class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+                 placeholder="WhatsApp, Instagram, grupo, etc" required>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Foto (opcional)</label>
+            <input id="camp-photo" type="file" accept="image/*" class="w-full text-sm">
+            <p class="text-xs text-gray-500 mt-1">Você pode enviar até 2MB. Se necessário, a imagem será otimizada antes de salvar.</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Símbolo (se não usar foto)</label>
+            <select id="camp-icon" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+              <option value="trophy">🏆 Troféu</option>
+              <option value="crown">👑 Coroa</option>
+              <option value="flame">🔥 Chama</option>
+              <option value="target">🎯 Alvo</option>
+              <option value="swords">⚔️ Espadas</option>
+              <option value="shield">🛡️ Escudo</option>
+            </select>
+          </div>
+        </div>
+
         <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Local</label><input id="camp-local" type="text" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"></div>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Máx. Participantes</label><input id="camp-max" type="number" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"></div>
+          <div><label id="camp-max-label" class="block text-sm font-medium text-gray-700 mb-1.5">Máx. Participantes</label><select id="camp-max" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white"></select></div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
             <select id="camp-status" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
@@ -116,147 +204,596 @@
     </div>
   </div>
 
+  
   <script type="module">
-    import { checkAuth, setupSidebar, initIcons, logout, getGuildContext, showToast } from './logic.js';
+    import { checkAuth, setupSidebar, initIcons, logout, getGuildContext, showToast, db } from './logic.js';
+    import {
+      collection, doc, setDoc, deleteDoc, onSnapshot,
+      query, orderBy, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // Inicialização IMEDIATA (Sem piscar)
     setupSidebar();
 
-    function tierRank(t){
-      const s=(t||'free').toString().toLowerCase();
-      if(s==='pro' || s==='business') return 2; if(s==='plus') return 1; return 0;
+    // Dropdown de quedas (fixo 1..20)
+    const dropsSel = document.getElementById('camp-drops');
+    for(let i=1;i<=20;i++){
+      const op=document.createElement('option');
+      op.value=String(i);
+      op.textContent=String(i);
+      dropsSel.appendChild(op);
     }
-    function applyVip(tier){
-      const pro = tierRank(tier) >= 2;
-      const b = document.getElementById('btn-new-camp');
-      if(b && !pro){
-        b.disabled = true;
-        b.classList.add('opacity-50','cursor-not-allowed');
-        b.innerHTML = '<i data-lucide="lock" class="w-4 h-4"></i> PRO (BETA)';
-      }
-    }
-
-    // aplica VIP usando cache imediato
-    try {
-      const ctx0=getGuildContext();
-      const tier0=(ctx0?.vipTier || JSON.parse(localStorage.getItem('guildCtx_cache_v1')||'{}').vipTier || 'free');
-      applyVip(String(tier0));
-    } catch(_) {}
 
     
-    // Carrega do cache ANTES de autenticar
-    window.camps = [];
-    const cachedCamps = localStorage.getItem('campsList');
-    if(cachedCamps) {
-        try {
-            window.camps = JSON.parse(cachedCamps);
-            // Renderiza IMEDIATAMENTE
-            renderCamps();
-        } catch(e) {}
-    } else {
-        // Se não tiver cache, renderiza estado vazio (sem skeleton, pois é local)
-        renderCamps(); 
-    }
+    // Dropdown de limite (BR: 1..2000 participantes | XvX: 1..200 equipes)
+    const maxSel = document.getElementById('camp-max');
+    const maxLabel = document.getElementById('camp-max-label');
 
-    checkAuth().then(user => {
-      if(!user) return;
-      document.getElementById('btn-logout').onclick = logout;
-    });
+    function fillMaxOptions(fmt){
+      if(!maxSel) return;
+      const isXvx = fmt === 'xvx';
+      const maxN = isXvx ? 200 : 2000;
 
-    function renderCamps() {
-      const el = document.getElementById('camps-list');
-      
-      if(!window.camps || window.camps.length === 0) {
-        el.innerHTML = `<div class="col-span-2 bg-white rounded-2xl p-10 border border-gray-100 shadow-sm text-center">
-          <i data-lucide="trophy" class="w-12 h-12 text-gray-300 mx-auto mb-3"></i>
-          <p class="text-gray-500 font-medium">Nenhum campeonato criado ainda</p>
-        </div>`;
-      } else {
-        el.innerHTML = window.camps.map(c => {
-          const statusClass = c.status === 'upcoming' ? 'bg-blue-100 text-blue-700' : (c.status === 'ongoing' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500');
-          const statusText = c.status === 'upcoming' ? 'Próximo' : (c.status === 'ongoing' ? 'Em andamento' : 'Finalizado');
-          return `
-          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden animate-in">
-            <div class="bg-gradient-to-r from-emerald-500 to-green-600 p-4 flex justify-between items-start">
-              <div class="flex items-center gap-2 text-white">
-                <i data-lucide="trophy" class="w-5 h-5"></i>
-                <h3 class="font-bold text-lg">${c.name}</h3>
-              </div>
-              <span class="text-xs font-medium px-2.5 py-1 rounded-full ${statusClass}">${statusText}</span>
-            </div>
-            <div class="p-4 space-y-3">
-              <p class="text-sm text-gray-600">${c.description}</p>
-              <div class="space-y-2 text-sm text-gray-500">
-                <div class="flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-emerald-500"></i> ${c.date || 'Sem data'}</div>
-                <div class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-emerald-500"></i> ${c.time || 'Sem horário'}</div>
-                <div class="flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4 text-emerald-500"></i> ${c.location || 'Sem local'}</div>
-                <div class="flex items-center gap-2"><i data-lucide="users" class="w-4 h-4 text-emerald-500"></i> Máx. ${c.max} participantes</div>
-              </div>
-              <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                <button onclick="editCamp('${c.id}')" class="text-sm text-gray-500 hover:text-emerald-600 px-3 py-2">Editar</button>
-                <button onclick="deleteCamp('${c.id}')" class="text-sm text-red-400 hover:text-red-500 px-3 py-2">Excluir</button>
-              </div>
-            </div>
-          </div>
-        `}).join('');
+      if(maxLabel){
+        maxLabel.textContent = isXvx ? 'Qtd. Equipes' : 'Máx. Participantes';
       }
-      initIcons();
+
+      // Rebuild options
+      maxSel.innerHTML = '';
+      for(let i=1;i<=maxN;i++){
+        const op=document.createElement('option');
+        op.value=String(i);
+        op.textContent=String(i);
+        maxSel.appendChild(op);
+      }
     }
 
+// Helpers UI
+    function setDisabled(el, disabled){
+      if(!el) return;
+      el.disabled = !!disabled;
+      el.classList.toggle('opacity-50', !!disabled);
+      el.classList.toggle('cursor-not-allowed', !!disabled);
+    }
+
+    function updateModeUI(){
+      const fmt = (document.getElementById('camp-format')?.value || 'br');
+      const br = document.getElementById('br-fields');
+      const xvx = document.getElementById('xvx-fields');
+      const local = document.getElementById('camp-local');
+
+      // Atualiza label + opções do limite
+      const prev = document.getElementById('camp-max')?.value || '1';
+      fillMaxOptions(fmt);
+
+      // tenta manter o valor anterior (se possível)
+      const maxN = (fmt === 'xvx') ? 200 : 2000;
+      const keep = Math.min(Number(prev || 1), maxN) || 1;
+      const maxEl = document.getElementById('camp-max');
+      if(maxEl) maxEl.value = String(keep);
+
+      if(fmt === 'xvx'){
+        if(br) br.classList.add('hidden');
+        if(xvx) xvx.classList.remove('hidden');
+        // Local indisponível se for XvX
+        setDisabled(local, true);
+        if(local) local.value = '';
+      } else {
+        if(br) br.classList.remove('hidden');
+        if(xvx) xvx.classList.add('hidden');
+        setDisabled(local, false);
+      }
+    }
+
+    function updateFeeUI(){
+      const t = document.getElementById('camp-feeType').value;
+      const wrap = document.getElementById('fee-value-wrap');
+      if(t === 'paid'){
+        wrap.classList.remove('hidden');
+      } else {
+        wrap.classList.add('hidden');
+        document.getElementById('camp-feeValue').value = '';
+      }
+    }
+
+    document.getElementById('camp-format').addEventListener('change', updateModeUI);
+    document.getElementById('camp-feeType').addEventListener('change', updateFeeUI);
+
+    // Modal controls (mantém API existente)
     window.openCampModal = () => {
       document.getElementById('camp-form').reset();
       document.getElementById('camp-id').value = '';
       document.getElementById('camp-modal-title').innerText = 'Novo Campeonato';
       document.getElementById('camp-modal').classList.remove('hidden');
+
+      // Estado inicial do formulário
+      updateModeUI();
+      updateFeeUI();
+      // default limite
+      if(document.getElementById('camp-max')) document.getElementById('camp-max').value = '100';
+
+
+      // Preenche guilda
+      try {
+        const ctx = getGuildContext() || JSON.parse(localStorage.getItem('guildCtx_cache_v1')||'{}');
+        document.getElementById('camp-guildname').value = ctx?.guildName || ctx?.name || '—';
+      } catch(_) {}
+
+      // Defaults
+      document.getElementById('camp-format').value = 'br';
+      updateModeUI();
+      document.getElementById('camp-feeType').value = 'free';
+      updateFeeUI();
+      initIcons();
     };
     window.closeCampModal = () => document.getElementById('camp-modal').classList.add('hidden');
 
+    // Estado
+    let guildId = null;
+    let guildName = null;
+    let unsub = null;
+    window.camps = [];
+
+    // Cache local para render instantâneo
+    function setCache(list){
+      localStorage.setItem('campsList', JSON.stringify(list || []));
+    }
+    function getCache(){
+      try { return JSON.parse(localStorage.getItem('campsList') || '[]'); } catch(_) { return []; }
+    }
+
+    function moneyBRL(v){
+      const n = Number(v);
+      if(!isFinite(n) || n<=0) return null;
+      return n.toFixed(2);
+    }
+
+    // ==== Dinheiro (pt-BR) para premiação ====
+    function parseMoneyBRLInput(v){
+      if(v === null || v === undefined) return null;
+      let s = (v+'').trim();
+      if(!s) return null;
+      // remove R$, espaços e qualquer coisa que não seja número, vírgula, ponto ou sinal
+      s = s.replace(/[^0-9,\.\-]/g, '');
+      if(!s) return null;
+
+      if(s.includes(',')){
+        // vírgula = decimal, ponto = milhar
+        s = s.replace(/\./g,'').replace(',', '.');
+      } else {
+        // sem vírgula: mantém ponto como decimal
+        // se tiver vários pontos, considera o último como decimal
+        const parts = s.split('.');
+        if(parts.length > 2){
+          const dec = parts.pop();
+          s = parts.join('') + '.' + dec;
+        }
+      }
+
+      const n = Number(s);
+      if(!isFinite(n) || n <= 0) return null;
+      return Math.round(n * 100) / 100;
+    }
+
+    function formatMoneyPlainBR(n){
+      const num = Number(n);
+      if(!isFinite(num) || num <= 0) return '';
+      try{
+        return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+      }catch(_){
+        // fallback simples
+        return num.toFixed(2).replace('.', ',');
+      }
+    }
+
+    function safeText(s){ return (s ?? '').toString().trim(); }
+    function escapeHtml(str){
+      return (str ?? '').toString()
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/\'/g,'&#39;');
+    }
+
+    // Foto -> base64 otimizada (aceita upload até 2MB, mas otimiza para caber no Firestore)
+    async function fileToOptimizedDataUrl(file){
+      if(!file) return null;
+      if(file.size > 2 * 1024 * 1024){
+        throw new Error('A foto deve ter no máximo 2MB.');
+      }
+      if(!file.type.startsWith('image/')){
+        throw new Error('Arquivo inválido. Envie uma imagem.');
+      }
+
+      const dataUrl = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = () => reject(new Error('Falha ao ler imagem.'));
+        r.readAsDataURL(file);
+      });
+
+      // Firestore tem limite de ~1MiB por documento.
+      // Para não quebrar, vamos otimizar e manter < ~900KB de base64.
+      const MAX_B64 = 900_000;
+
+      if(typeof dataUrl === 'string' && dataUrl.length <= MAX_B64){
+        return dataUrl;
+      }
+
+      // Re-encode via canvas (jpeg) e reduzir até caber
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image();
+        i.onload = () => resolve(i);
+        i.onerror = () => reject(new Error('Não foi possível carregar a imagem.'));
+        i.src = dataUrl;
+      });
+
+      const maxDim = 768;
+      let { width, height } = img;
+      const scale = Math.min(1, maxDim / Math.max(width, height));
+      width = Math.max(1, Math.round(width * scale));
+      height = Math.max(1, Math.round(height * scale));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      let q = 0.88;
+      let out = canvas.toDataURL('image/jpeg', q);
+      while(out.length > MAX_B64 && q > 0.4){
+        q -= 0.08;
+        out = canvas.toDataURL('image/jpeg', q);
+      }
+
+      if(out.length > MAX_B64){
+        throw new Error('A foto ficou grande demais para salvar no Firestore. Use uma imagem menor ou escolha um símbolo.');
+      }
+      return out;
+    }
+
+    function formatMeta(c){
+      const fmt = c.format === 'xvx' ? (c.xvx || 'XvX') : ((c.mode || 'BR').toUpperCase() + ' • ' + (c.drops ? (c.drops + ' quedas') : ''));
+      const fee = c.feeType === 'paid' ? ('R$ ' + (c.feeValue || '0,00')) : 'Gratuito';
+      return { fmt, fee };
+    }
+
+    function formatBRL(v){
+      if(v === null || v === undefined || v === '') return null;
+      let n = v;
+      if(typeof n === 'string'){
+        // aceita "1500,50" ou "1500.50"
+        // aceita "1500,50" (pt-BR) ou "1500.50" (ponto decimal)
+        const s = n.trim();
+        if (s.includes(',')) {
+          // quando tem vírgula, ponto vira separador de milhar
+          n = s.replace(/\./g, '').replace(',', '.');
+        } else {
+          // sem vírgula, mantém ponto como decimal
+          n = s.replace(',', '.');
+        }
+      }
+      n = Number(n);
+      if(!isFinite(n) || n <= 0) return null;
+      try{
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
+      }catch(e){
+        // fallback simples
+        return 'R$ ' + n.toFixed(2).replace('.', ',');
+      }
+    }
+
+    function renderCamps(){
+      const el = document.getElementById('camps-list');
+      const list = window.camps || [];
+      if(list.length === 0){
+        el.innerHTML = `<div class="col-span-2 bg-white rounded-2xl p-10 border border-gray-100 shadow-sm text-center">
+          <i data-lucide="trophy" class="w-12 h-12 text-gray-300 mx-auto mb-3"></i>
+          <p class="text-gray-500 font-medium">Nenhum campeonato criado ainda</p>
+        </div>`;
+        initIcons();
+        return;
+      }
+
+      el.innerHTML = list.map(c => {
+        const statusClass = c.status === 'upcoming' ? 'bg-blue-100 text-blue-700' : (c.status === 'ongoing' ?
+          'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600');
+
+        const { fmt, fee } = formatMeta(c);
+        const descRaw = (c.description || '').trim();
+        const descShort = descRaw.length > 75 ? (descRaw.slice(0, 75).trimEnd() + '…') : descRaw;
+        const maxLabelTxt = (c.format === 'xvx') ? 'equipes' : 'participantes';
+        const prizeTxt = formatBRL(c.prizeTotal);
+        const prizeRow = prizeTxt
+          ? `<div class="flex items-center gap-2"><i data-lucide="gift" class="w-4 h-4 text-emerald-500"></i> ${prizeTxt}</div>`
+          : '';
+
+        const iconHtml = c.photoBase64
+          ? `<img src="${c.photoBase64}" class="w-11 h-11 rounded-xl object-cover ring-1 ring-gray-200" alt="">`
+          : `<div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center ring-1 ring-emerald-100">
+              <i data-lucide="${c.icon || 'trophy'}" class="w-6 h-6 text-emerald-600"></i>
+            </div>`;
+
+        const linkBtn = c.link ? `<a href="${c.link}" target="_blank" rel="noopener noreferrer" class="text-sm text-emerald-600 hover:text-emerald-700 px-3 py-2">Ver infos</a>` : '';
+
+        return `
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-5">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  ${iconHtml}
+                  <div>
+                    <h4 class="font-bold text-gray-900">${c.name || 'Sem nome'}</h4>
+                    <p class="text-xs text-gray-500 mt-0.5">${c.guildName ? ('Por ' + c.guildName) : ''}</p>
+                    ${descShort ? `<p class=\"text-sm text-gray-600 mt-1.5\">${escapeHtml(descShort)}</p>` : ''}
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${statusClass}">
+                  ${c.status === 'upcoming' ? 'Próximo' : (c.status === 'ongoing' ? 'Em andamento' : 'Finalizado')}
+                </span>
+              </div>
+
+              <div class="mt-4 space-y-2 text-sm text-gray-600">
+                <div class="flex items-center gap-2"><i data-lucide="swords" class="w-4 h-4 text-emerald-500"></i> ${fmt}</div>
+                <div class="flex items-center gap-2"><i data-lucide="wallet" class="w-4 h-4 text-emerald-500"></i> ${fee}</div>
+                ${prizeRow}
+                <div class="flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-emerald-500"></i> ${c.date || 'Sem data'}</div>
+                <div class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-emerald-500"></i> ${c.time || 'Sem horário'}</div>
+                <div class="flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4 text-emerald-500"></i> ${c.location || 'Sem local'}</div>
+                <div class="flex items-center gap-2"><i data-lucide="users" class="w-4 h-4 text-emerald-500"></i> ${c.max || '—'} ${maxLabelTxt}</div>
+              </div>
+
+              <div class="flex justify-end gap-2 pt-2 mt-4 border-t border-gray-100">
+                ${linkBtn}
+                <button onclick="editCamp('${c.id}')" class="text-sm text-gray-500 hover:text-emerald-600 px-3 py-2">Editar</button>
+                <button onclick="deleteCamp('${c.id}')" class="text-sm text-red-400 hover:text-red-500 px-3 py-2">Excluir</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      initIcons();
+    }
+
+    // API edit/delete
     window.editCamp = (id) => {
-      const c = camps.find(x => x.id == id);
-      document.getElementById('camp-id').value = c.id;
-      document.getElementById('camp-name').value = c.name;
-      document.getElementById('camp-desc').value = c.description;
-      document.getElementById('camp-date').value = c.date;
-      document.getElementById('camp-time').value = c.time;
-      document.getElementById('camp-local').value = c.location;
-      document.getElementById('camp-max').value = c.max;
-      document.getElementById('camp-status').value = c.status;
+      const c = (window.camps || []).find(x => x.id === id);
+      if(!c) return;
+
+      document.getElementById('camp-id').value = c.id || '';
+      document.getElementById('camp-name').value = c.name || '';
+      document.getElementById('camp-desc').value = c.description || '';
+      document.getElementById('camp-date').value = c.date || '';
+      document.getElementById('camp-time').value = c.time || '';
+      document.getElementById('camp-local').value = c.location || '';
+      document.getElementById('camp-status').value = c.status || 'upcoming';
+
+      document.getElementById('camp-format').value = c.format || 'br';
+      updateModeUI();
+      // depois de preencher as opções
+      document.getElementById('camp-max').value = String(c.max || '');
+      document.getElementById('camp-mode').value = c.mode || 'solo';
+      document.getElementById('camp-drops').value = String(c.drops || 1);
+      document.getElementById('camp-xvx').value = c.xvx || '1v1';
+      updateModeUI();
+
+      document.getElementById('camp-feeType').value = c.feeType || 'free';
+      updateFeeUI();
+      document.getElementById('camp-feeValue').value = c.feeValue || '';
+      document.getElementById('camp-prizeTotal').value = c.prizeTotal ? formatMoneyPlainBR(c.prizeTotal) : '';
+      document.getElementById('camp-link').value = c.link || '';
+      document.getElementById('camp-icon').value = c.icon || 'trophy';
+      document.getElementById('camp-photo').value = ''; // por segurança, não reatribui filee
+
+      // Guilda
+      document.getElementById('camp-guildname').value = c.guildName || guildName || '—';
+
       document.getElementById('camp-modal-title').innerText = 'Editar Campeonato';
       document.getElementById('camp-modal').classList.remove('hidden');
+      initIcons();
     };
 
-    window.deleteCamp = (id) => {
-      if(confirm('Excluir?')) {
-        window.camps = window.camps.filter(x => x.id != id);
-        localStorage.setItem('campsList', JSON.stringify(window.camps));
-        renderCamps();
+    window.deleteCamp = async (id) => {
+      if(!confirm('Excluir campeonato?')) return;
+      // Firestore
+      try{
+        if(db && guildId){
+          await deleteDoc(doc(db, 'guildas', guildId, 'campeonatos', id));
+        }
+      }catch(e){
+        console.error(e);
+        showToast('error', 'Erro ao excluir no Firestore: ' + e.message);
       }
+      // Cache
+      window.camps = (window.camps || []).filter(x => x.id !== id);
+      setCache(window.camps);
+      renderCamps();
     };
 
-    document.getElementById('camp-form').addEventListener('submit', (e) => {
+    // Submit
+    document.getElementById('camp-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const id = document.getElementById('camp-id').value;
-      const data = {
-        id: id || Date.now(),
-        name: document.getElementById('camp-name').value,
-        description: document.getElementById('camp-desc').value,
-        date: document.getElementById('camp-date').value,
-        time: document.getElementById('camp-time').value,
-        location: document.getElementById('camp-local').value,
-        max: document.getElementById('camp-max').value,
-        status: document.getElementById('camp-status').value,
+
+      const id = safeText(document.getElementById('camp-id').value);
+      const fmt = safeText(document.getElementById('camp-format').value) || 'br';
+
+      const name = safeText(document.getElementById('camp-name').value);
+      const link = safeText(document.getElementById('camp-link').value);
+      if(!name) return showToast('error', 'Informe o nome do campeonato.');
+      if(!link) return showToast('error', 'O link para informações é obrigatório.');
+
+      // Foto
+      let photoBase64 = null;
+      const file = document.getElementById('camp-photo').files?.[0] || null;
+      try{
+        if(file){
+          photoBase64 = await fileToOptimizedDataUrl(file);
+        }
+      }catch(err){
+        showToast('error', err.message);
+        return;
+      }
+
+      // Fee
+      const feeType = safeText(document.getElementById('camp-feeType').value) || 'free';
+      const feeValue = feeType === 'paid' ? moneyBRL(document.getElementById('camp-feeValue').value) : null;
+      const prizeTotal = parseMoneyBRLInput(document.getElementById('camp-prizeTotal').value);
+
+
+      // BR / XvX fields
+      let mode = null, drops = null, xvx = null;
+      let location = safeText(document.getElementById('camp-local').value);
+
+      if(fmt === 'xvx'){
+        xvx = safeText(document.getElementById('camp-xvx').value) || '1v1';
+        mode = null;
+        drops = null;
+        location = ''; // Local indisponível em XvX
+      } else {
+        mode = safeText(document.getElementById('camp-mode').value) || 'solo';
+        drops = Number(document.getElementById('camp-drops').value || 1);
+        xvx = null;
+      }
+
+      const now = Date.now();
+      const payload = {
+        name,
+        description: safeText(document.getElementById('camp-desc').value),
+        date: safeText(document.getElementById('camp-date').value),
+        time: safeText(document.getElementById('camp-time').value),
+        location,
+        max: Number(document.getElementById('camp-max').value || 0),
+        status: safeText(document.getElementById('camp-status').value) || 'upcoming',
+
+        format: fmt,         // 'br' | 'xvx'
+        mode,                // solo/duo/squad (BR)
+        drops,               // number (BR)
+        xvx,                 // 1v1..4v4 (XvX)
+
+        guildId: guildId || null,
+        guildName: guildName || safeText(document.getElementById('camp-guildname').value) || null,
+
+        feeType,
+        feeValue,
+        prizeTotal: prizeTotal || null,
+        link,
+
+        icon: safeText(document.getElementById('camp-icon').value) || 'trophy',
+        photoBase64: photoBase64 || null,
+
+        updatedAtMs: now,
+        updatedAt: serverTimestamp(),
       };
 
-      if(id) {
-        window.camps = window.camps.map(c => c.id == id ? data : c);
-      } else {
-        window.camps.push(data);
+      // Save Firestore
+      try{
+        if(db && guildId){
+          if(id){
+            await setDoc(doc(db, 'guildas', guildId, 'campeonatos', id), payload, { merge: true });
+            // Atualiza cache local
+            payload.id = id;
+            window.camps = (window.camps || []).map(c => c.id === id ? ({...c, ...payload, id}) : c);
+          } else {
+            const ref = doc(collection(db, 'guildas', guildId, 'campeonatos'));
+            const toCreate = {
+              ...payload,
+              id: ref.id,
+              createdAtMs: now,
+              createdAt: serverTimestamp(),
+            };
+            await setDoc(ref, toCreate);
+            window.camps = [toCreate, ...(window.camps || [])];
+          }
+          setCache(window.camps);
+          showToast('success', 'Campeonato salvo no Firestore!');
+        } else {
+          // fallback local
+          const fallback = { ...payload, id: id || String(now), createdAtMs: payload.createdAtMs || now };
+          if(id){
+            window.camps = (window.camps || []).map(c => c.id === id ? fallback : c);
+          } else {
+            window.camps = [fallback, ...(window.camps || [])];
+          }
+          setCache(window.camps);
+          showToast('info', 'Firebase não disponível — salvo apenas localmente.');
+        }
+      }catch(err){
+        console.error(err);
+        showToast('error', 'Erro ao salvar no Firestore: ' + err.message);
+        return;
       }
-      localStorage.setItem('campsList', JSON.stringify(window.camps));
+
       closeCampModal();
       renderCamps();
     });
+
+    async function boot(){
+      // Render imediato do cache
+      window.camps = getCache();
+      renderCamps();
+
+      const user = await checkAuth();
+      if(!user) return;
+      document.getElementById('btn-logout').onclick = logout;
+      // Máscara leve da premiação: não quebra digitação, formata ao sair do campo
+      const prizeEl = document.getElementById('camp-prizeTotal');
+      if(prizeEl){
+        prizeEl.addEventListener('input', () => {
+          // só limpa caracteres proibidos enquanto digita
+          prizeEl.value = prizeEl.value.replace(/[^0-9,\.\-]/g,'');
+        });
+        prizeEl.addEventListener('blur', () => {
+          const n = parseMoneyBRLInput(prizeEl.value);
+          prizeEl.value = n ? formatMoneyPlainBR(n) : '';
+        });
+      }
+
+
+      // Contexto de guilda
+      try{
+        const ctx = getGuildContext() || JSON.parse(localStorage.getItem('guildCtx_cache_v1')||'{}');
+        guildId = ctx?.guildId || ctx?.id || null;
+        guildName = ctx?.guildName || ctx?.name || null;
+      }catch(_){}
+
+      // Hidrata campo guilda no modal se já abrir
+      if(guildName){
+        const g = document.getElementById('camp-guildname');
+        if(g) g.value = guildName;
+      }
+
+      // Firestore realtime (sem travar)
+      try{
+        if(db && guildId){
+          const col = collection(db, 'guildas', guildId, 'campeonatos');
+          const qy = query(col, orderBy('updatedAtMs', 'desc'));
+          if(unsub) unsub();
+          unsub = onSnapshot(qy, (snap) => {
+            const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            window.camps = list;
+            setCache(list);
+            renderCamps();
+          }, (err) => {
+            console.error(err);
+            // Não quebra a UI se der permissão/erro de rede: mantém cache
+            window.camps = getCache();
+            renderCamps();
+            showToast('error', 'Falha ao sincronizar campeonatos: ' + err.message);
+          });
+        }
+      }catch(err){
+        console.error(err);
+      }
+    }
+
+    // Defaults UI
+    updateModeUI();
+    updateFeeUI();
+    boot();
+
   </script>
+
 
   <!-- OTK Footer -->
 <footer id="otk-footer" class="mt-12 border-t border-emerald-500/10 text-slate-700">

@@ -113,6 +113,16 @@
             <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
             <input id="guild-search" type="text" placeholder="Procurar por nome, ID ou e-mail de líder..." 
                    class="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-100 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm" />
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            <span class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Filtro:</span>
+            <select id="vip-filter" class="px-3 py-2 rounded-xl border border-gray-200 bg-white text-[11px] font-black">
+              <option value="all">Todos</option>
+              <option value="free">Free</option>
+              <option value="plus">Plus</option>
+              <option value="pro">Pro</option>
+              <option value="business">Business</option>
+            </select>
+          </div>
           </div>
         </div>
 
@@ -185,13 +195,36 @@
     function buildVipExpiresAt(tier) {
       const days = vipDurationDays(tier);
       if (!days) return null;
-      return Timestamp.fromDate(new Date(Date.now() + days * 24 * 60 * 60 * 1000));
+      return Date.now() + days * 24 * 60 * 60 * 1000;
     }
 
 function fmtDate(ts) {
       if(!ts) return '—';
       const d = ts.toMillis ? new Date(ts.toMillis()) : new Date(ts);
       return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+    }
+
+    function vipExpiresAtMsFromAny(v) {
+      if (v == null) return null;
+      if (typeof v === 'number' && isFinite(v)) return v;
+      if (typeof v === 'string' && v.trim() !== '' && isFinite(Number(v))) return Number(v);
+      // Firestore Timestamp
+      if (v && typeof v.toMillis === 'function') return v.toMillis();
+      if (v && typeof v.seconds === 'number') return v.seconds * 1000;
+      return null;
+    }
+
+    function remainingTag(expiresAtMs, tier) {
+      const t = normalizeVip(tier);
+      const ms = vipExpiresAtMsFromAny(expiresAtMs);
+      if (!ms) return { text: (t === 'free' ? 'FREE' : 'Sem expiração'), cls: 'bg-gray-100 text-gray-600' };
+
+      const diff = ms - Date.now();
+      if (diff <= 0) return { text: 'Expirado', cls: 'bg-red-100 text-red-700' };
+
+      const days = Math.ceil(diff / (24 * 60 * 60 * 1000));
+      if (days <= 3) return { text: `Faltam ${days}d`, cls: 'bg-orange-100 text-orange-700' };
+      return { text: `Faltam ${days}d`, cls: 'bg-sky-100 text-sky-700' };
     }
 
     let allGuilds = [];
@@ -238,6 +271,7 @@ function fmtDate(ts) {
             id: d.id,
             name: gData.name || cfg.name || `Guilda ${d.id.slice(0,4)}`,
             vip: normalizeVip(cfg.vipTier || gData.vipTier),
+            vipExpiresAt: (cfg.vipExpiresAt ?? gData.vipExpiresAt ?? null),
             leaders: cfg.leaders || [gData.ownerEmail],
             admins: cfg.admins || [],
             tag: cfg.tagMembros || '—',
@@ -259,11 +293,16 @@ function fmtDate(ts) {
 
     function renderGuilds() {
       const q = document.getElementById('guild-search').value.toLowerCase().trim();
-      const filtered = allGuilds.filter(g => 
-        g.name.toLowerCase().includes(q) || 
-        g.id.toLowerCase().includes(q) || 
-        g.leaders.join(' ').toLowerCase().includes(q)
-      );
+      const vf = (document.getElementById('vip-filter')?.value || 'all');
+      const filtered = allGuilds.filter(g => {
+        const matchesQ =
+          g.name.toLowerCase().includes(q) ||
+          g.id.toLowerCase().includes(q) ||
+          g.leaders.join(' ').toLowerCase().includes(q);
+
+        const matchesVip = (vf === 'all') ? true : (normalizeVip(g.vip) === vf);
+        return matchesQ && matchesVip;
+      });
 
       const grid = document.getElementById('guilds-grid');
       if (filtered.length === 0) {
@@ -278,9 +317,12 @@ function fmtDate(ts) {
               <h4 class="font-black text-gray-900 truncate text-lg">${g.name}</h4>
               <p class="text-[10px] text-gray-400 font-mono tracking-tighter">${g.id}</p>
             </div>
-            <span class="px-3 py-1 rounded-xl ${g.vip === 'business' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-50 text-emerald-700'} text-[10px] font-black uppercase tracking-wider shadow-sm border border-black/5">
+            <div class="flex flex-col items-end gap-2">
+            <span class="px-3 py-1 rounded-xl ${g.vip === 'business' ? 'bg-purple-100 text-purple-700' : (g.vip === 'pro' ? 'bg-blue-100 text-blue-700' : (g.vip === 'plus' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'))} text-[10px] font-black uppercase tracking-wider shadow-sm border border-black/5">
               ${g.vip}
             </span>
+            ${(() => { const rt = remainingTag(g.vipExpiresAt, g.vip); return '<span class="px-3 py-1 rounded-xl '+rt.cls+' text-[10px] font-black tracking-wider shadow-sm border border-black/5">'+rt.text+'</span>'; })()}
+          </div>
           </div>
 
           <div class="space-y-2 mb-5">
@@ -327,6 +369,27 @@ function fmtDate(ts) {
              <button id="btn-save-vip" class="w-full mt-3 py-3 rounded-xl bg-emerald-600 text-white font-black text-xs hover:bg-emerald-700 transition">ATUALIZAR PLANO</button>
           </div>
 
+          <div class="p-4 bg-white rounded-2xl border border-gray-100">
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-3">Informações da Guilda</p>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <p class="text-[10px] text-gray-500 font-black uppercase">Membros</p>
+                <p class="text-xl font-black text-gray-900 mt-1"><span id="members-count">—</span></p>
+              </div>
+              <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <p class="text-[10px] text-gray-500 font-black uppercase">Plano</p>
+                <p class="text-xl font-black text-gray-900 mt-1">${normalizeVip(g.vip).toUpperCase()}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 bg-white rounded-2xl border border-gray-100">
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Renomear Guilda</p>
+            <input id="edit-guild-name" type="text" value="${g.name.replaceAll('"','&quot;')}" class="w-full p-3 rounded-xl border border-gray-200 bg-white text-sm font-bold" />
+            <button id="btn-save-name" class="w-full mt-3 py-3 rounded-xl bg-gray-900 text-white font-black text-xs hover:bg-black transition">SALVAR NOME</button>
+            <p class="mt-2 text-[10px] text-gray-400">Atualiza o nome em <b>guildas</b> e <b>configGuilda</b>.</p>
+          </div>
+
           <div>
             <p class="text-[10px] font-bold text-gray-400 uppercase mb-3">Administração</p>
             <div class="space-y-2">
@@ -351,14 +414,54 @@ function fmtDate(ts) {
       document.getElementById('drawer').classList.remove('hidden');
       setTimeout(() => body.classList.remove('translate-x-full'), 10);
 
+      // Contar membros (subcoleção /guildas/{gid}/membros)
+      (async () => {
+        try {
+          const memSnap = await getDocs(collection(db, 'guildas', gid, 'membros'));
+          const el = document.getElementById('members-count');
+          if (el) el.textContent = String(memSnap.size);
+        } catch (e) {
+          const el = document.getElementById('members-count');
+          if (el) el.textContent = '—';
+        }
+      })();
+
       document.getElementById('btn-save-vip').onclick = async () => {
         const nv = document.getElementById('edit-vip-sel').value;
         try {
-          await updateDoc(doc(db, 'configGuilda', gid), { vipTier: nv, vipExpiresAt: buildVipExpiresAt(nv) });
+          const expiresAtMs = buildVipExpiresAt(nv);
+          const patch = { vipTier: nv, vipExpiresAt: expiresAtMs, updatedAtMs: Date.now() };
+          await updateDoc(doc(db, 'configGuilda', gid), patch);
+          // fallback: alguns lugares usam /guildas
+          try { await updateDoc(doc(db, 'guildas', gid), patch); } catch(_) {}
           showToast('success', `Plano da guilda ${g.name} alterado para ${nv.toUpperCase()}`);
           closeDrawer();
           loadData();
         } catch(e) { console.error('VIP save error:', e); showToast('error', 'Erro ao salvar VIP.'); }
+      };
+
+
+      // Salvar nome da guilda (Chefe)
+      document.getElementById('btn-save-name').onclick = async () => {
+        const newName = (document.getElementById('edit-guild-name').value || '').trim();
+        if (!newName) { showToast('error', 'Nome inválido.'); return; }
+        const patchName = { name: newName, updatedAtMs: Date.now(), updatedAt: serverTimestamp() };
+        try {
+          // configGuilda pode não existir em alguns casos -> setDoc merge
+          try { await updateDoc(doc(db, 'configGuilda', gid), patchName); }
+          catch(_) { await setDoc(doc(db, 'configGuilda', gid), patchName, { merge: true }); }
+
+          // guildas
+          try { await updateDoc(doc(db, 'guildas', gid), patchName); }
+          catch(_) { await setDoc(doc(db, 'guildas', gid), patchName, { merge: true }); }
+
+          showToast('success', 'Nome da guilda atualizado.');
+          closeDrawer();
+          loadData();
+        } catch (e) {
+          console.error('NAME save error:', e);
+          showToast('error', 'Erro ao salvar nome da guilda.');
+        }
       };
     };
 
@@ -498,6 +601,7 @@ function fmtDate(ts) {
     document.getElementById('drawer-backdrop').onclick = closeDrawer;
     document.getElementById('btn-reload').onclick = loadData;
     document.getElementById('guild-search').oninput = renderGuilds;
+    document.getElementById('vip-filter').onchange = renderGuilds;
     document.getElementById('btn-open-solicita').onclick = () => { 
       document.getElementById('solicita-panel').classList.remove('hidden'); 
       loadSolicita(); 
