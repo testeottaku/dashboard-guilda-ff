@@ -10,6 +10,27 @@
     tailwind.config = { theme: { extend: { colors: { emerald: { 50:'#ecfdf5', 100:'#d1fae5', 200:'#a7f3d0', 400:'#34d399', 500:'#10b981', 600:'#059669', 700:'#047857'} } } } }
   </script>
   <link rel="stylesheet" href="./style.css" />
+
+  <style>
+    /* switch */
+    .switch{position:relative;display:inline-block;width:46px;height:26px}
+    .switch input{opacity:0;width:0;height:0}
+    .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#e5e7eb;transition:.2s;border-radius:999px}
+    .slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;bottom:3px;background:white;transition:.2s;border-radius:999px;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+    .switch input:checked + .slider{background:#10b981}
+    .switch input:focus + .slider{box-shadow:0 0 0 4px rgba(16,185,129,.18)}
+    .switch input:checked + .slider:before{transform:translateX(20px)}
+  
+/* playMode picker (check-circle, single select) */
+.pm-wrap{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.pm-option{display:flex;align-items:center;gap:.55rem;padding:.75rem 1rem;border:1px solid #e5e7eb;border-radius:14px;background:#fff;cursor:pointer;transition:.15s;font-size:.875rem;color:#374151}
+.pm-option:hover{background:#f9fafb}
+.pm-circle{width:18px;height:18px;border-radius:999px;border:2px solid #d1d5db;display:inline-block;position:relative;flex:0 0 auto}
+.pm-option.pm-selected{border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.12)}
+.pm-option.pm-selected .pm-circle{border-color:#10b981;background:#10b981}
+.pm-option.pm-selected .pm-circle:after{content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;border:2px solid #fff;border-top:0;border-left:0;transform:rotate(45deg)}
+
+  </style>
 </head>
 <body class="bg-gray-50/80">
 
@@ -91,14 +112,14 @@
 
         <div id="members-list" class="space-y-3">
           <!-- Placeholder de carregamento (Só aparece se não tiver cache) -->
-           <div class="bg-white rounded-2xl border border-gray-100 p-4 animate-pulse flex items-center gap-3">
+           <div class="bg-white rounded-2xl border border-gray-100 p-5 animate-pulse flex items-center gap-3">
               <div class="w-11 h-11 bg-gray-200 rounded-full"></div>
               <div class="flex-1 space-y-2">
                  <div class="h-4 bg-gray-200 rounded w-1/3"></div>
                  <div class="h-3 bg-gray-100 rounded w-1/4"></div>
               </div>
            </div>
-           <div class="bg-white rounded-2xl border border-gray-100 p-4 animate-pulse flex items-center gap-3">
+           <div class="bg-white rounded-2xl border border-gray-100 p-5 animate-pulse flex items-center gap-3">
               <div class="w-11 h-11 bg-gray-200 rounded-full"></div>
               <div class="flex-1 space-y-2">
                  <div class="h-4 bg-gray-200 rounded w-1/3"></div>
@@ -118,8 +139,8 @@
         <h3 id="modal-title" class="text-lg font-bold text-gray-900">Novo Membro</h3>
         <button onclick="closeModal()" class="p-2 rounded-lg hover:bg-gray-100 text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-      
-      <form id="member-form" class="p-4 space-y-4">
+
+    <form id="member-form" class="p-5 space-y-5">
         <input type="hidden" id="member-id">
         <input type="hidden" id="join-date">
         
@@ -144,13 +165,40 @@
           <input id="whatsapp" type="text" placeholder="11999999999" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-sm">
         </div>
 
+<div class="mt-6">
+      <p class="text-sm font-semibold text-gray-900">Modo de jogo</p>
+            <input type="hidden" id="play-mode" value="" />
+
+      <div id="playmode-wrap" class="pm-wrap mt-3">
+        <button type="button" class="pm-option" data-value="Rush">
+          <span class="pm-circle" aria-hidden="true"></span>
+          <span>Rush</span>
+        </button>
+        <button type="button" class="pm-option" data-value="Full Gás">
+          <span class="pm-circle" aria-hidden="true"></span>
+          <span>Full Gás</span>
+        </button>
+        <button type="button" class="pm-option" data-value="Curandeiro">
+          <span class="pm-circle" aria-hidden="true"></span>
+          <span>Curandeiro</span>
+        </button>
+        <button type="button" class="pm-option" data-value="Fuzileiro">
+          <span class="pm-circle" aria-hidden="true"></span>
+          <span>Fuzileiro</span>
+        </button>
+      </div>
+    </div>
+
+
+      
+      
         <hr class="border-gray-100">
 
         <!-- Toggles -->
         <div class="space-y-3">
           <div class="flex items-center justify-between">
             <label class="text-sm font-medium text-gray-700">Guerra de Guilda</label>
-            <input type="checkbox" id="guild-war" class="w-5 h-5 accent-emerald-500">
+            <label class="switch"><input type="checkbox" id="guild-war"><span class="slider"></span></label>
           </div>
           <div>
             <label class="text-xs text-gray-500 mb-1 block">Meta da Guerra</label>
@@ -163,7 +211,7 @@
         <div class="space-y-3">
           <div class="flex items-center justify-between">
             <label class="text-sm font-medium text-gray-700">Meta Semanal</label>
-            <input type="checkbox" id="weekly-meta" class="w-5 h-5 accent-emerald-500">
+            <label class="switch"><input type="checkbox" id="weekly-meta"><span class="slider"></span></label>
           </div>
           <div>
             <label class="text-xs text-gray-500 mb-1 block">Valor da Meta</label>
@@ -175,7 +223,10 @@
 
         <div class="flex items-center justify-between">
           <label class="text-sm font-medium text-gray-700">Tem Tag</label>
-          <input type="checkbox" id="has-tag" class="w-5 h-5 accent-emerald-500">
+          <label class="switch">
+            <input type="checkbox" id="has-tag">
+            <span class="slider"></span>
+          </label>
         </div>
 
         <div class="sticky bottom-0 bg-white border-t border-gray-100 pt-4 flex gap-3">
@@ -194,12 +245,14 @@
     // quando a lista ainda não renderizou.
     setupSidebar();
     initIcons();
+    initPlayModePicker();
     
     // Variável para armazenar a lista na memória
     let membersCache = [];
 
     // Tag configurável (Firestore: configGuilda/{uid}.tagMembros)
     let memberTag = null;
+    let hasTagManualOverride = false;
 
     function escapeRegExp(str) {
       return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -217,7 +270,100 @@
       return raw;
     }
 
-    // --- LÓGICA DE CACHE SEM PISCAR ---
+
+    // Garante que o nick fique com apenas 1 tag no começo (evita duplicar no editar)
+    function normalizeNickWithTag(rawNick, tag, wantsTag) {
+      const nick = (rawNick || '').trim();
+      if (!wantsTag || !tag) return nick;
+
+      const t = String(tag).trim();
+      if (!t) return nick;
+
+      // remove repetições da tag no começo: "TAG TAG Nick" -> "Nick"
+      const esc = escapeRegExp(t);
+      let cleaned = nick.replace(new RegExp('^(?:' + esc + '\\s*)+', 'g'), '').trim();
+      // fallback case-insensitive (caso a tag venha com variação de maiúsculas/minúsculas)
+      if (cleaned === nick) {
+        cleaned = nick.replace(new RegExp('^(?:' + esc + '\\s*)+', 'gi'), '').trim();
+      }
+      return cleaned ? (t + ' ' + cleaned) : t;
+    }
+
+    function nickHasMemberTag(nick) {
+      if (!memberTag) return false;
+      const raw = String(nick || "");
+      const t = String(memberTag || "").trim();
+      if (!t) return false;
+      // Verifica se a tag aparece em qualquer parte do nick (case-insensitive)
+      try {
+        const re = new RegExp(escapeRegExp(t), 'i');
+        return re.test(raw);
+      } catch {
+        return raw.toLowerCase().includes(t.toLowerCase());
+      }
+    }
+
+    function syncHasTagToggleFromNick() {
+      const hasTagEl = document.getElementById('has-tag');
+      const nickEl = document.getElementById('nick');
+      if (!hasTagEl || !nickEl) return;
+
+      // Se o usuário marcou/desmarcou manualmente, não sobrescreve.
+      if (hasTagManualOverride) return;
+
+      // Sem tag configurada, não temos como detectar automaticamente.
+      if (!memberTag) return;
+
+      hasTagEl.checked = nickHasMemberTag(nickEl.value);
+    }
+
+
+    // playMode (single select com visual "check circle")
+    function applyPlayMode(value) {
+      const hidden = document.getElementById('play-mode');
+      const wrap = document.getElementById('playmode-wrap');
+      if (!hidden || !wrap) return;
+
+      const v = (value || '').trim();
+      hidden.value = v;
+
+      wrap.querySelectorAll('.pm-option').forEach(btn => {
+        const isSelected = (btn.dataset.value || '') === v;
+        btn.classList.toggle('pm-selected', isSelected);
+        btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+      });
+    }
+
+    function initPlayModePicker() {
+      const wrap = document.getElementById('playmode-wrap');
+      if (!wrap) return;
+
+      // evita duplicar listener caso o modal abra várias vezes
+      if (wrap.dataset.bound === '1') return;
+      wrap.dataset.bound = '1';
+
+      wrap.addEventListener('click', (e) => {
+        const btn = e.target.closest('.pm-option');
+        if (!btn) return;
+        applyPlayMode(btn.dataset.value || '');
+      });
+    }
+
+        // Se o usuário mexer no switch manualmente, a verificação automática não sobrescreve.
+    document.addEventListener('change', (ev) => {
+      if (ev && ev.target && ev.target.id === 'has-tag') {
+        hasTagManualOverride = true;
+      }
+    });
+
+    // Atualiza automaticamente o "Tem tag?" conforme o nick muda (API/digitação)
+    document.addEventListener('input', (ev) => {
+      if (ev && ev.target && ev.target.id === 'nick') {
+        syncHasTagToggleFromNick();
+      }
+    });
+
+// --- LÓGICA DE CACHE SEM PISCAR ---
     // 1. Tenta carregar do cache IMEDIATAMENTE antes de qualquer auth
     const cachedMembersJSON = localStorage.getItem('membersList');
     if(cachedMembersJSON) {
@@ -249,6 +395,13 @@
             hasTagEl.checked = false;
           }
         });
+      }
+
+      // Auto-verificação: se o nick já contém a tag, marca "Tem Tag" sozinho
+      const nickEl = document.getElementById('nick');
+      if (nickEl) {
+        nickEl.addEventListener('input', syncHasTagToggleFromNick);
+        nickEl.addEventListener('blur', syncHasTagToggleFromNick);
       }
       
       // Carrega do servidor (Background Update)
@@ -326,7 +479,7 @@
       // Renderiza HTML
       el.innerHTML = list.map(m => `
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all hover:shadow-md animate-in">
-          <div class="w-full flex items-center gap-3 p-4 cursor-pointer" onclick="toggleDetails('${m.id}')">
+          <div class="w-full flex items-center gap-3 p-5 cursor-pointer" onclick="toggleDetails('${m.id}')">
             <div class="w-11 h-11 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
               ${m.nick ? m.nick.charAt(0).toUpperCase() : '?'}
             </div>
@@ -399,7 +552,10 @@
       if(!m) return;
       document.getElementById('member-id').value = m.id;
       document.getElementById('visible-id').value = m.visibleId;
-      document.getElementById('nick').value = stripKnownTags(m.nick);
+      document.getElementById('nick').value = (m.nick || '');
+      applyPlayMode(m.playMode || '');
+      hasTagManualOverride = false;
+      syncHasTagToggleFromNick();
       document.getElementById('whatsapp').value = m.whatsapp;
       document.getElementById('guild-war').checked = m.guildWar;
       document.getElementById('guild-war-meta').value = m.guildWarMeta;
@@ -408,7 +564,9 @@
       document.getElementById('has-tag').checked = m.hasTag;
       document.getElementById('join-date').value = m.joinDate;
       
-      document.getElementById('modal-title').innerText = 'Editar Membro';
+            // Recalcula automaticamente se o nick contém a tag
+      syncHasTagToggleFromNick();
+document.getElementById('modal-title').innerText = 'Editar Membro';
       document.getElementById('modal').classList.remove('hidden');
     };
 
@@ -422,29 +580,43 @@
       } catch(e) { showToast('error', 'Erro ao excluir.'); }
     };
 
-    // API Mitsuri (Busca de Nick)
+    // Busca de Nick (via /api/proxy no seu próprio domínio: sem CORS)
     window.fetchNick = async () => {
       const uid = document.getElementById('visible-id').value.trim();
       const feedback = document.getElementById('api-feedback');
       if(!uid) { showToast('error', 'Digite o ID'); return; }
-      
+
       feedback.innerHTML = '<span class="text-blue-500">Buscando...</span>';
+
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), 12000);
+
       try {
-        const res = await fetch("https://api.mitsuri.fun/api/trpc/api.info", {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({json:{key:"mitsuri_UVPRYNm5RNdvirmjrMQqlu8XVpEpFPxP", uid: uid, region:"BR"}})
-        });
-        const data = await res.json();
-        const json = data?.result?.data?.json;
-        if(json && json.nickname) {
-          document.getElementById('nick').value = json.nickname;
-          feedback.innerHTML = `<span class="text-emerald-600 font-bold">✓ ${json.nickname} (Nível ${json.level || '?'})</span>`;
+        const url = `/api/proxy?endpoint=ff_info&query=${encodeURIComponent(uid)}`;
+        const res = await fetch(url, { method: 'GET', signal: controller.signal });
+        const data = await res.json().catch(() => ({}));
+
+        const info = data?.AccountInfo;
+        // A Mitsuri mudou o JSON: pode vir como Name/Level ou AccountName/AccountLevel
+        const name = info?.Name ?? info?.AccountName;
+        const level = info?.Level ?? info?.AccountLevel;
+
+        if (res.ok && name) {
+          document.getElementById('nick').value = name;
+      hasTagManualOverride = false;
+      syncHasTagToggleFromNick();
+          feedback.innerHTML = `<span class="text-emerald-600 font-bold">✓ ${name} (Nível ${Number.isFinite(level) ? level : '?'})</span> <span class="text-gray-500">Dados fornecidos por api.mitsuri.fun!</span>`;
+          syncHasTagToggleFromNick();
         } else {
-          throw new Error('Não encontrado');
+          feedback.innerHTML = '<span class="text-red-500">Jogador não encontrado ou erro na API.</span>';
         }
       } catch(e) {
-        feedback.innerHTML = '<span class="text-red-500">Jogador não encontrado ou erro na API.</span>';
+        const msg = (e?.name === 'AbortError')
+          ? 'A API demorou demais para responder.'
+          : 'Jogador não encontrado ou erro na API.';
+        feedback.innerHTML = `<span class="text-red-500">${msg}</span>`;
+      } finally {
+        clearTimeout(t);
       }
     };
 
@@ -462,12 +634,9 @@
 
       const rawNick = document.getElementById('nick').value.trim();
       const hasTag = document.getElementById('has-tag').checked;
-      if (hasTag && !memberTag) {
-        showToast('error', 'Nenhuma tag configurada. Vá em Ajustes e configure antes.');
-        return;
-      }
-      const tagPrefix = hasTag ? (memberTag.trim() + ' ') : '';
-      const finalNick = tagPrefix + rawNick;
+      // Importante: marcar "Tem Tag" NÃO altera o nick.
+      // Algumas tags são estilizadas (fontes/símbolos diferentes), então o nick fica exatamente como o usuário digitou.
+      const finalNick = rawNick;
 
       const payload = {
         visibleId,
@@ -478,6 +647,7 @@
         weeklyMeta: document.getElementById('weekly-meta').checked,
         weeklyMetaValue: Number(document.getElementById('weekly-meta-value').value),
         hasTag: hasTag,
+        playMode: (document.getElementById('play-mode')?.value || null),
         joinDate: document.getElementById('join-date').value || new Date().toISOString().split('T')[0],
         updatedAt: serverTimestamp()
       };
