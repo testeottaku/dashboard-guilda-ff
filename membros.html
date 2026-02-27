@@ -30,6 +30,11 @@
 .pm-option.pm-selected .pm-circle{border-color:#10b981;background:#10b981}
 .pm-option.pm-selected .pm-circle:after{content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;border:2px solid #fff;border-top:0;border-left:0;transform:rotate(45deg)}
 
+/* Quick Edit specific fixes */
+.animate-in { animation: fadeIn 0.2s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.zoom-in-95 { animation: zoomIn 0.2s ease-out forwards; }
+@keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
   </style>
 </head>
 <body class="bg-gray-50/80">
@@ -95,10 +100,16 @@
       <div class="p-4 sm:p-6 max-w-5xl mx-auto space-y-4">
         
         <!-- Cabeçalho com Filtros e Botão Adicionar -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div><h2 class="text-2xl font-bold text-gray-900">Membros</h2><p class="text-gray-500 text-sm mt-1" id="member-count">Carregando...</p></div>
           
-          <div class="flex items-center gap-2 relative">
+          <div class="flex flex-wrap items-center justify-end gap-2 relative w-full sm:w-auto">
+            
+            <!-- Botão Edição Rápida Novo -->
+            <button onclick="openQuickEditModal()" class="flex items-center gap-2 px-3 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-50 transition-all active:scale-95">
+              <i data-lucide="zap" class="w-4 h-4 text-emerald-500"></i> <span class="hidden sm:inline">Edição Rápida</span>
+            </button>
+
             <!-- Dropdown Filtro Avançado -->
             <div class="relative">
               <button onclick="toggleFilterDropdown()" id="btn-filter" class="flex items-center gap-2 px-3 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-50 transition-all active:scale-95">
@@ -197,9 +208,9 @@
     </main>
   </div>
 
-  <!-- MODAL (Adicionar/Editar) -->
+  <!-- MODAL (Adicionar/Editar Original) -->
   <div id="modal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center hidden">
-    <div class="fixed inset-0 bg-black/40" onclick="closeModal()"></div>
+    <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal()"></div>
     <div class="relative bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in">
       <div class="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-2xl z-10">
         <h3 id="modal-title" class="text-lg font-bold text-gray-900">Novo Membro</h3>
@@ -300,9 +311,71 @@
     </div>
   </div>
 
+  <!-- MODAL DE EDIÇÃO RÁPIDA -->
+  <div id="quick-edit-modal" class="fixed inset-0 z-[55] flex items-end sm:items-center justify-center hidden">
+    <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" onclick="closeQuickEditModal()"></div>
+    <div class="relative bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col shadow-2xl animate-in">
+      
+      <!-- Header -->
+      <div class="bg-white border-b border-gray-100 p-4 flex flex-col gap-4 rounded-t-2xl z-10 shrink-0">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+              <i data-lucide="zap" class="w-4 h-4 text-emerald-600"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900">Edição Rápida</h3>
+          </div>
+          <button onclick="closeQuickEditModal()" class="p-2 rounded-lg hover:bg-gray-100 text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        
+        <!-- Botões de Zerar Tudo -->
+        <div class="flex gap-2">
+          <button onclick="promptZero('gg')" class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs transition-colors">
+            <i data-lucide="swords" class="w-3.5 h-3.5"></i> Zerar GG
+          </button>
+          <button onclick="promptZero('semanal')" class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs transition-colors">
+            <i data-lucide="target" class="w-3.5 h-3.5"></i> Zerar Semanal
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de Membros para Edição Rápida -->
+      <div class="p-4 overflow-y-auto flex-1 bg-gray-50/50">
+        <div id="qe-members-list" class="space-y-2">
+          <!-- Gerado via JS -->
+        </div>
+      </div>
+
+      <!-- Footer / Botão Salvar (Oculto inicialmente) -->
+      <div class="bg-white border-t border-gray-100 p-4 shrink-0 rounded-b-2xl">
+        <button id="qe-save-btn" onclick="saveQuickEdits()" class="hidden w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all">
+          Salvar Alterações
+        </button>
+        <p id="qe-info-text" class="text-center text-xs text-gray-400 font-medium">Selecione as opções acima para habilitar o salvamento.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMAÇÃO (Para Zerar) -->
+  <div id="confirm-modal" class="fixed inset-0 z-[60] flex items-center justify-center hidden">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
+    <div class="relative bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 m-4 zoom-in-95">
+      <div class="flex items-center justify-center w-14 h-14 rounded-full bg-red-100 mb-4 mx-auto">
+        <i data-lucide="alert-triangle" class="w-7 h-7 text-red-600"></i>
+      </div>
+      <h3 id="confirm-title" class="text-xl font-bold text-center text-gray-900 mb-2">Zerar Metas?</h3>
+      <p id="confirm-desc" class="text-sm text-center text-gray-500 mb-6 leading-relaxed">Isso irá redefinir todos os pontos para 0 e marcar como incompleto para TODOS os membros.</p>
+      <div class="flex gap-3">
+        <button onclick="closeConfirmModal()" class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors">Cancelar</button>
+        <button onclick="executeZero()" class="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-lg shadow-red-200 transition-all active:scale-95">Sim, Zerar</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { checkAuth, setupSidebar, initIcons, logout, db, showToast, getMemberTagConfig, getGuildContext } from './logic.js';
-    import { collection, getDocs, setDoc, doc, deleteDoc, serverTimestamp, query, where, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { collection, getDocs, setDoc, doc, deleteDoc, serverTimestamp, query, where, limit, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     setupSidebar();
     initIcons();
@@ -313,6 +386,165 @@
 
     let memberTag = null;
     let hasTagManualOverride = false;
+
+    // ----- LÓGICA DE EDIÇÃO RÁPIDA -----
+    let pendingEdits = {}; // Armazena as mudanças pendentes ex: { id1: { hasTag: true, guildWar: false... } }
+    let currentZeroAction = ''; // 'gg' ou 'semanal'
+
+    window.openQuickEditModal = () => {
+       pendingEdits = {};
+       document.getElementById('qe-save-btn').classList.add('hidden');
+       document.getElementById('qe-info-text').classList.remove('hidden');
+       renderQuickEditList();
+       document.getElementById('quick-edit-modal').classList.remove('hidden');
+    };
+
+    window.closeQuickEditModal = () => document.getElementById('quick-edit-modal').classList.add('hidden');
+    
+    function renderQuickEditList() {
+       const container = document.getElementById('qe-members-list');
+       // Ordena alfabeticamente para facilitar
+       const sorted = [...membersCache].sort((a,b) => String(a.nick).localeCompare(String(b.nick)));
+
+       container.innerHTML = sorted.map(m => {
+           // Pega o estado atual (se já mexeu, pega do pendente, senão pega do original)
+           const state = pendingEdits[m.id] || { hasTag: !!m.hasTag, guildWar: !!m.guildWar, weeklyMeta: !!m.weeklyMeta };
+
+           return `
+             <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white border border-gray-100 rounded-xl gap-3 shadow-sm hover:border-emerald-100 transition-colors">
+                <div class="flex-1 min-w-0 flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-700 font-bold text-xs">
+                    ${m.nick ? m.nick.charAt(0).toUpperCase() : '?'}
+                  </div>
+                  <div>
+                    <p class="font-bold text-gray-900 text-sm truncate">${m.nick || 'Sem Nick'}</p>
+                    <p class="text-[11px] text-gray-400 font-medium">ID: ${m.visibleId || '?'}</p>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                   <button onclick="toggleQE('${m.id}', 'hasTag')" id="qe-${m.id}-hasTag" class="pm-option !p-2 !gap-1.5 !text-xs !rounded-lg flex justify-center flex-1 sm:flex-none ${state.hasTag ? 'pm-selected' : ''}">
+                     <span class="pm-circle scale-[0.75]"></span> Tag
+                   </button>
+                   <button onclick="toggleQE('${m.id}', 'guildWar')" id="qe-${m.id}-guildWar" class="pm-option !p-2 !gap-1.5 !text-xs !rounded-lg flex justify-center flex-1 sm:flex-none ${state.guildWar ? 'pm-selected' : ''}">
+                     <span class="pm-circle scale-[0.75]"></span> GG
+                   </button>
+                   <button onclick="toggleQE('${m.id}', 'weeklyMeta')" id="qe-${m.id}-weeklyMeta" class="pm-option !p-2 !gap-1.5 !text-xs !rounded-lg flex justify-center flex-1 sm:flex-none ${state.weeklyMeta ? 'pm-selected' : ''}">
+                     <span class="pm-circle scale-[0.75]"></span> Sem.
+                   </button>
+                </div>
+             </div>
+           `;
+       }).join('');
+    }
+
+    window.toggleQE = (id, field) => {
+       const m = membersCache.find(x => x.id === id);
+       if(!m) return;
+
+       // Inicializa as pendências desse membro se for a primeira vez clicando nele
+       if(!pendingEdits[id]) {
+           pendingEdits[id] = { hasTag: !!m.hasTag, guildWar: !!m.guildWar, weeklyMeta: !!m.weeklyMeta };
+       }
+
+       // Inverte o valor
+       pendingEdits[id][field] = !pendingEdits[id][field];
+
+       // Atualiza a interface (a classe do botão)
+       const btn = document.getElementById(`qe-${id}-${field}`);
+       if(pendingEdits[id][field]) {
+           btn.classList.add('pm-selected');
+       } else {
+           btn.classList.remove('pm-selected');
+       }
+
+       // Mostra o botão de salvar e esconde o texto
+       document.getElementById('qe-save-btn').classList.remove('hidden');
+       document.getElementById('qe-info-text').classList.add('hidden');
+    };
+
+    window.saveQuickEdits = async () => {
+       const keys = Object.keys(pendingEdits);
+       if(keys.length === 0) return;
+
+       const btn = document.getElementById('qe-save-btn');
+       btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-2"></i> Salvando...';
+       btn.disabled = true;
+
+       const batch = writeBatch(db);
+       const guildId = getGuildContext().guildId;
+
+       keys.forEach(id => {
+           const ref = doc(db, "guildas", guildId, "membros", id);
+           batch.update(ref, {
+               hasTag: pendingEdits[id].hasTag,
+               guildWar: pendingEdits[id].guildWar,
+               weeklyMeta: pendingEdits[id].weeklyMeta,
+               updatedAt: serverTimestamp()
+           });
+       });
+
+       try {
+           await batch.commit();
+           showToast('success', `${keys.length} membro(s) atualizado(s)!`);
+           closeQuickEditModal();
+           loadMembers(true); // Recarrega para refletir as mudanças na lista principal
+       } catch(e) {
+           console.error(e);
+           showToast('error', 'Erro ao salvar alterações em lote.');
+       } finally {
+           btn.innerHTML = 'Salvar Alterações';
+           btn.disabled = false;
+       }
+    };
+
+    // ----- LÓGICA PARA ZERAR TODOS -----
+    window.promptZero = (type) => {
+       currentZeroAction = type;
+       const label = type === 'gg' ? 'a Guerra (GG)' : 'o Semanal';
+       document.getElementById('confirm-title').innerText = `Zerar ${label}?`;
+       document.getElementById('confirm-desc').innerHTML = `Essa ação irá colocar <strong>0 pontos</strong> e desmarcar a meta de <strong>TODOS OS MEMBROS</strong> da guilda.<br><br><span class="text-red-500 font-bold">Atenção: É irreversível!</span>`;
+       document.getElementById('confirm-modal').classList.remove('hidden');
+    };
+
+    window.closeConfirmModal = () => document.getElementById('confirm-modal').classList.add('hidden');
+
+    window.executeZero = async () => {
+       if(!membersCache || membersCache.length === 0) {
+           showToast('info', 'Não há membros para zerar.');
+           closeConfirmModal();
+           return;
+       }
+
+       const batch = writeBatch(db);
+       const guildId = getGuildContext().guildId;
+
+       membersCache.forEach(m => {
+           const ref = doc(db, "guildas", guildId, "membros", m.id);
+           const updateData = { updatedAt: serverTimestamp() };
+           
+           if(currentZeroAction === 'gg') {
+               updateData.guildWar = false;
+               updateData.guildWarMeta = 0;
+           } else {
+               updateData.weeklyMeta = false;
+               updateData.weeklyMetaValue = 0;
+           }
+           batch.update(ref, updateData);
+       });
+
+       try {
+           closeConfirmModal();
+           showToast('info', 'Zerando todos os membros... aguarde.');
+           await batch.commit();
+           showToast('success', 'Todos os membros zerados com sucesso!');
+           closeQuickEditModal();
+           loadMembers(true);
+       } catch(e) {
+           console.error(e);
+           showToast('error', 'Erro ao processar zeramento.');
+       }
+    };
+
 
     // ----- LOGICA DO NOVO FILTRO DROPDOWN -----
     window.toggleFilterDropdown = () => {
@@ -454,6 +686,8 @@
       wrap.querySelectorAll('.pm-option').forEach(btn => {
         // Ignora os botões do filtro na aplicação do modal
         if (btn.hasAttribute('data-filter-btn')) return;
+        // Ignora botões da edição rápida
+        if (btn.id && btn.id.startsWith('qe-')) return;
         
         const v = (btn.dataset.value || '').trim();
         const isSelected = set.has(v);
@@ -488,7 +722,7 @@
 
       wrap.addEventListener('click', (e) => {
         const btn = e.target.closest('.pm-option');
-        if (!btn || btn.hasAttribute('data-filter-btn')) return;
+        if (!btn || btn.hasAttribute('data-filter-btn') || (btn.id && btn.id.startsWith('qe-'))) return;
         togglePlayMode(btn.dataset.value || '');
       });
     }
