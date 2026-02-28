@@ -21,20 +21,20 @@
     .switch input:focus + .slider{box-shadow:0 0 0 4px rgba(16,185,129,.18)}
     .switch input:checked + .slider:before{transform:translateX(20px)}
   
-/* playMode picker (check-circle, multi select) */
-.pm-wrap{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
-.pm-option{display:flex;align-items:center;gap:.55rem;padding:.75rem 1rem;border:1px solid #e5e7eb;border-radius:14px;background:#fff;cursor:pointer;transition:.15s;font-size:.875rem;color:#374151}
-.pm-option:hover{background:#f9fafb}
-.pm-circle{width:18px;height:18px;border-radius:999px;border:2px solid #d1d5db;display:inline-block;position:relative;flex:0 0 auto;transition:.2s;}
-.pm-option.pm-selected{border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.12); background-color: #ecfdf5;}
-.pm-option.pm-selected .pm-circle{border-color:#10b981;background:#10b981}
-.pm-option.pm-selected .pm-circle:after{content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;border:2px solid #fff;border-top:0;border-left:0;transform:rotate(45deg)}
+    /* playMode picker (check-circle, multi select) */
+    .pm-wrap{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+    .pm-option{display:flex;align-items:center;gap:.55rem;padding:.75rem 1rem;border:1px solid #e5e7eb;border-radius:14px;background:#fff;cursor:pointer;transition:.15s;font-size:.875rem;color:#374151}
+    .pm-option:hover{background:#f9fafb}
+    .pm-circle{width:18px;height:18px;border-radius:999px;border:2px solid #d1d5db;display:inline-block;position:relative;flex:0 0 auto;transition:.2s;}
+    .pm-option.pm-selected{border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.12); background-color: #ecfdf5;}
+    .pm-option.pm-selected .pm-circle{border-color:#10b981;background:#10b981}
+    .pm-option.pm-selected .pm-circle:after{content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;border:2px solid #fff;border-top:0;border-left:0;transform:rotate(45deg)}
 
-/* Quick Edit specific fixes */
-.animate-in { animation: fadeIn 0.2s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.zoom-in-95 { animation: zoomIn 0.2s ease-out forwards; }
-@keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    /* Quick Edit specific fixes */
+    .animate-in { animation: fadeIn 0.2s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .zoom-in-95 { animation: zoomIn 0.2s ease-out forwards; }
+    @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
   </style>
 </head>
 <body class="bg-gray-50/80">
@@ -43,7 +43,7 @@
     <!-- Menu Mobile Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/30 z-40 hidden lg:hidden"></div>
 
-    <!-- Sidebar (Copiado para manter layout) -->
+    <!-- Sidebar -->
     <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white border-r border-gray-200 z-50 transform -translate-x-full transition-transform duration-300 lg:translate-x-0 lg:static">
       <div class="flex items-center justify-between p-5 border-b border-gray-100">
         <div class="flex items-center gap-3">
@@ -242,29 +242,29 @@
           <input id="whatsapp" type="text" placeholder="11999999999" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-sm">
         </div>
 
-<div class="mt-6">
-      <p class="text-sm font-semibold text-gray-900">Modo de jogo</p>
-            <input type="hidden" id="play-mode" value="" />
+        <div class="mt-6">
+          <p class="text-sm font-semibold text-gray-900">Modo de jogo</p>
+          <input type="hidden" id="play-mode" value="" />
 
-      <div id="playmode-wrap" class="pm-wrap mt-3">
-        <button type="button" class="pm-option" data-value="Rush">
-          <span class="pm-circle" aria-hidden="true"></span>
-          <span>Rush</span>
-        </button>
-        <button type="button" class="pm-option" data-value="Full Gás">
-          <span class="pm-circle" aria-hidden="true"></span>
-          <span>Full Gás</span>
-        </button>
-        <button type="button" class="pm-option" data-value="Curandeiro">
-          <span class="pm-circle" aria-hidden="true"></span>
-          <span>Curandeiro</span>
-        </button>
-        <button type="button" class="pm-option" data-value="Fuzileiro">
-          <span class="pm-circle" aria-hidden="true"></span>
-          <span>Fuzileiro</span>
-        </button>
-      </div>
-    </div>
+          <div id="playmode-wrap" class="pm-wrap mt-3">
+            <button type="button" class="pm-option" data-value="Rush">
+              <span class="pm-circle" aria-hidden="true"></span>
+              <span>Rush</span>
+            </button>
+            <button type="button" class="pm-option" data-value="Full Gás">
+              <span class="pm-circle" aria-hidden="true"></span>
+              <span>Full Gás</span>
+            </button>
+            <button type="button" class="pm-option" data-value="Curandeiro">
+              <span class="pm-circle" aria-hidden="true"></span>
+              <span>Curandeiro</span>
+            </button>
+            <button type="button" class="pm-option" data-value="Fuzileiro">
+              <span class="pm-circle" aria-hidden="true"></span>
+              <span>Fuzileiro</span>
+            </button>
+          </div>
+        </div>
 
         <hr class="border-gray-100">
 
@@ -378,444 +378,86 @@
     import { collection, getDocs, setDoc, doc, deleteDoc, serverTimestamp, query, where, limit, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     setupSidebar();
-    initIcons();
-    initPlayModePicker();
-    
+
+    // ==========================================
+    // VARIÁVEIS DE ESTADO E CHAVES DE CACHE
+    // ==========================================
     let membersCache = [];
     let currentFilter = 'all';
-
     let memberTag = null;
     let hasTagManualOverride = false;
+    let pendingEdits = {}; 
+    let currentZeroAction = ''; 
 
-    // ----- LÓGICA DE EDIÇÃO RÁPIDA -----
-    let pendingEdits = {}; // Armazena as mudanças pendentes ex: { id1: { hasTag: true, guildWar: false... } }
-    let currentZeroAction = ''; // 'gg' ou 'semanal'
-
-    window.openQuickEditModal = () => {
-       pendingEdits = {};
-       document.getElementById('qe-save-btn').classList.add('hidden');
-       document.getElementById('qe-info-text').classList.remove('hidden');
-       renderQuickEditList();
-       document.getElementById('quick-edit-modal').classList.remove('hidden');
-    };
-
-    window.closeQuickEditModal = () => document.getElementById('quick-edit-modal').classList.add('hidden');
-    
-    function renderQuickEditList() {
-       const container = document.getElementById('qe-members-list');
-       // Ordena alfabeticamente para facilitar
-       const sorted = [...membersCache].sort((a,b) => String(a.nick).localeCompare(String(b.nick)));
-
-       container.innerHTML = sorted.map(m => {
-           // Pega o estado atual (se já mexeu, pega do pendente, senão pega do original)
-           const state = pendingEdits[m.id] || { hasTag: !!m.hasTag, guildWar: !!m.guildWar, weeklyMeta: !!m.weeklyMeta };
-
-           return `
-             <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white border border-gray-100 rounded-xl gap-3 shadow-sm hover:border-emerald-100 transition-colors">
-                <div class="flex-1 min-w-0 flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-700 font-bold text-xs">
-                    ${m.nick ? m.nick.charAt(0).toUpperCase() : '?'}
-                  </div>
-                  <div>
-                    <p class="font-bold text-gray-900 text-sm truncate">${m.nick || 'Sem Nick'}</p>
-                    <p class="text-[11px] text-gray-400 font-medium">ID: ${m.visibleId || '?'}</p>
-                  </div>
-                </div>
-                <div class="flex gap-2">
-                   <button onclick="toggleQE('${m.id}', 'hasTag')" id="qe-${m.id}-hasTag" class="pm-option !p-2 !gap-1.5 !text-xs !rounded-lg flex justify-center flex-1 sm:flex-none ${state.hasTag ? 'pm-selected' : ''}">
-                     <span class="pm-circle scale-[0.75]"></span> Tag
-                   </button>
-                   <button onclick="toggleQE('${m.id}', 'guildWar')" id="qe-${m.id}-guildWar" class="pm-option !p-2 !gap-1.5 !text-xs !rounded-lg flex justify-center flex-1 sm:flex-none ${state.guildWar ? 'pm-selected' : ''}">
-                     <span class="pm-circle scale-[0.75]"></span> GG
-                   </button>
-                   <button onclick="toggleQE('${m.id}', 'weeklyMeta')" id="qe-${m.id}-weeklyMeta" class="pm-option !p-2 !gap-1.5 !text-xs !rounded-lg flex justify-center flex-1 sm:flex-none ${state.weeklyMeta ? 'pm-selected' : ''}">
-                     <span class="pm-circle scale-[0.75]"></span> Sem.
-                   </button>
-                </div>
-             </div>
-           `;
-       }).join('');
+    function __membersLsKey() {
+      const gid = getGuildContext()?.guildId;
+      return gid ? `membersList_${gid}` : 'membersList';
     }
 
-    window.toggleQE = (id, field) => {
-       const m = membersCache.find(x => x.id === id);
-       if(!m) return;
-
-       // Inicializa as pendências desse membro se for a primeira vez clicando nele
-       if(!pendingEdits[id]) {
-           pendingEdits[id] = { hasTag: !!m.hasTag, guildWar: !!m.guildWar, weeklyMeta: !!m.weeklyMeta };
-       }
-
-       // Inverte o valor
-       pendingEdits[id][field] = !pendingEdits[id][field];
-
-       // Atualiza a interface (a classe do botão)
-       const btn = document.getElementById(`qe-${id}-${field}`);
-       if(pendingEdits[id][field]) {
-           btn.classList.add('pm-selected');
-       } else {
-           btn.classList.remove('pm-selected');
-       }
-
-       // Mostra o botão de salvar e esconde o texto
-       document.getElementById('qe-save-btn').classList.remove('hidden');
-       document.getElementById('qe-info-text').classList.add('hidden');
-    };
-
-    window.saveQuickEdits = async () => {
-       const keys = Object.keys(pendingEdits);
-       if(keys.length === 0) return;
-
-       const btn = document.getElementById('qe-save-btn');
-       btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-2"></i> Salvando...';
-       btn.disabled = true;
-
-       const batch = writeBatch(db);
-       const guildId = getGuildContext().guildId;
-
-       keys.forEach(id => {
-           const ref = doc(db, "guildas", guildId, "membros", id);
-           batch.update(ref, {
-               hasTag: pendingEdits[id].hasTag,
-               guildWar: pendingEdits[id].guildWar,
-               weeklyMeta: pendingEdits[id].weeklyMeta,
-               updatedAt: serverTimestamp()
-           });
-       });
-
-       try {
-           await batch.commit();
-           showToast('success', `${keys.length} membro(s) atualizado(s)!`);
-           closeQuickEditModal();
-           loadMembers(true); // Recarrega para refletir as mudanças na lista principal
-       } catch(e) {
-           console.error(e);
-           showToast('error', 'Erro ao salvar alterações em lote.');
-       } finally {
-           btn.innerHTML = 'Salvar Alterações';
-           btn.disabled = false;
-       }
-    };
-
-    // ----- LÓGICA PARA ZERAR TODOS -----
-    window.promptZero = (type) => {
-       currentZeroAction = type;
-       const label = type === 'gg' ? 'a Guerra (GG)' : 'o Semanal';
-       document.getElementById('confirm-title').innerText = `Zerar ${label}?`;
-       document.getElementById('confirm-desc').innerHTML = `Essa ação irá colocar <strong>0 pontos</strong> e desmarcar a meta de <strong>TODOS OS MEMBROS</strong> da guilda.<br><br><span class="text-red-500 font-bold">Atenção: É irreversível!</span>`;
-       document.getElementById('confirm-modal').classList.remove('hidden');
-    };
-
-    window.closeConfirmModal = () => document.getElementById('confirm-modal').classList.add('hidden');
-
-    window.executeZero = async () => {
-       if(!membersCache || membersCache.length === 0) {
-           showToast('info', 'Não há membros para zerar.');
-           closeConfirmModal();
-           return;
-       }
-
-       const batch = writeBatch(db);
-       const guildId = getGuildContext().guildId;
-
-       membersCache.forEach(m => {
-           const ref = doc(db, "guildas", guildId, "membros", m.id);
-           const updateData = { updatedAt: serverTimestamp() };
-           
-           if(currentZeroAction === 'gg') {
-               updateData.guildWar = false;
-               updateData.guildWarMeta = 0;
-           } else {
-               updateData.weeklyMeta = false;
-               updateData.weeklyMetaValue = 0;
-           }
-           batch.update(ref, updateData);
-       });
-
-       try {
-           closeConfirmModal();
-           showToast('info', 'Zerando todos os membros... aguarde.');
-           await batch.commit();
-           showToast('success', 'Todos os membros zerados com sucesso!');
-           closeQuickEditModal();
-           loadMembers(true);
-       } catch(e) {
-           console.error(e);
-           showToast('error', 'Erro ao processar zeramento.');
-       }
-    };
-
-
-    // ----- LOGICA DO NOVO FILTRO DROPDOWN -----
-    window.toggleFilterDropdown = () => {
-      document.getElementById('filter-dropdown').classList.toggle('hidden');
-    };
-
-    window.applyFilter = (filterKey, filterLabel) => {
-      currentFilter = filterKey;
-      document.getElementById('filter-label').innerText = filterLabel;
-      document.getElementById('filter-dropdown').classList.add('hidden');
-
-      // Atualiza visual dos botões check circle do filtro
-      document.querySelectorAll('[data-filter-btn]').forEach(btn => {
-        btn.classList.remove('pm-selected');
-      });
-      
-      const activeBtn = document.querySelector(`[data-filter-btn="${filterKey}"]`);
-      if (activeBtn) {
-        activeBtn.classList.add('pm-selected');
+    function __readMembersFromCache() {
+      try {
+        const raw = localStorage.getItem(__membersLsKey());
+        if (!raw) return null;
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : null;
+      } catch (_) {
+        return null;
       }
+    }
 
+    function __writeMembersToCache(list) {
+      try {
+        localStorage.setItem(__membersLsKey(), JSON.stringify(list || []));
+      } catch (_) {}
+    }
+
+    function __setMembersCache(list) {
+      membersCache = Array.isArray(list) ? list : [];
+      membersCache.sort((a,b)=> String(a.nick || '').localeCompare(String(b.nick || '')));
+      __writeMembersToCache(membersCache);
       applyFiltersAndRender();
-    };
+      const countEl = document.getElementById('member-count');
+      if (countEl) countEl.textContent = `${membersCache.length} membros na guilda`;
+    }
 
-    // Fechar dropdown ao clicar fora
-    document.addEventListener('click', (e) => {
-      const btn = document.getElementById('btn-filter');
-      const dropdown = document.getElementById('filter-dropdown');
-      if (btn && dropdown && !btn.contains(e.target) && !dropdown.contains(e.target)) {
-        dropdown.classList.add('hidden');
-      }
-    });
-
-    // Função central que aplica a busca + filtro dropdown juntos
-    function applyFiltersAndRender() {
-      const termo = document.getElementById('search-input').value.toLowerCase();
+    // ==========================================
+    // FUNÇÕES DE RENDERIZAÇÃO
+    // ==========================================
+    window.applyFiltersAndRender = function() {
+      const termo = document.getElementById('search-input')?.value.toLowerCase() || '';
       
       const filtrados = membersCache.filter(m => {
-        // 1. Filtro de Busca (Texto)
         const matchBusca = (m.nick && m.nick.toLowerCase().includes(termo)) || 
                            (m.visibleId && String(m.visibleId).includes(termo));
         if (!matchBusca) return false;
 
-        // 2. Filtros de Status (Dropdown)
         if (currentFilter === 'with-tag') return m.hasTag;
         if (currentFilter === 'no-tag') return !m.hasTag;
-
         if (currentFilter === 'with-gg') return m.guildWar;
         if (currentFilter === 'no-gg') return !m.guildWar;
-
         if (currentFilter === 'with-weekly') return m.weeklyMeta;
         if (currentFilter === 'no-weekly') return !m.weeklyMeta;
-
         if (currentFilter === 'all-met') return (m.weeklyMeta && m.guildWar);
 
-        return true; // 'all'
+        return true; 
       });
 
       renderList(filtrados, termo !== '' || currentFilter !== 'all');
-    }
-    // ------------------------------------------
-
-    function escapeRegExp(str) {
-      return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    }
-
-    function stripKnownTags(nick) {
-      const raw = String(nick || "").trim();
-      const candidates = [memberTag, "ᵒᵗᵏ", "otk"];
-      for (const t of candidates) {
-        if (!t) continue;
-        const re = new RegExp("^" + escapeRegExp(String(t).trim()) + "\\s+", "i");
-        if (re.test(raw)) return raw.replace(re, "").trim();
-      }
-      return raw;
-    }
-
-    function normalizeNickWithTag(rawNick, tag, wantsTag) {
-      const nick = (rawNick || '').trim();
-      if (!wantsTag || !tag) return nick;
-
-      const t = String(tag).trim();
-      if (!t) return nick;
-
-      const esc = escapeRegExp(t);
-      let cleaned = nick.replace(new RegExp('^(?:' + esc + '\\s*)+', 'g'), '').trim();
-      if (cleaned === nick) {
-        cleaned = nick.replace(new RegExp('^(?:' + esc + '\\s*)+', 'gi'), '').trim();
-      }
-      return cleaned ? (t + ' ' + cleaned) : t;
-    }
-
-    function nickHasMemberTag(nick) {
-      if (!memberTag) return false;
-      const raw = String(nick || "");
-      const t = String(memberTag || "").trim();
-      if (!t) return false;
-      try {
-        const re = new RegExp(escapeRegExp(t), 'i');
-        return re.test(raw);
-      } catch {
-        return raw.toLowerCase().includes(t.toLowerCase());
-      }
-    }
-
-    function syncHasTagToggleFromNick() {
-      const hasTagEl = document.getElementById('has-tag');
-      const nickEl = document.getElementById('nick');
-      if (!hasTagEl || !nickEl) return;
-      if (hasTagManualOverride) return;
-      if (!memberTag) return;
-      hasTagEl.checked = nickHasMemberTag(nickEl.value);
-    }
-
-    function getSelectedPlayModes() {
-      const hidden = document.getElementById('play-mode');
-      if (!hidden) return [];
-      const raw = (hidden.value || '').trim();
-      if (!raw) return [];
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed.filter(Boolean).map(v => String(v).trim()).filter(Boolean);
-      } catch {}
-      return [raw].filter(Boolean);
-    }
-
-    function setSelectedPlayModes(values) {
-      const hidden = document.getElementById('play-mode');
-      const wrap = document.getElementById('playmode-wrap');
-      if (!hidden || !wrap) return;
-
-      const list = (Array.isArray(values) ? values : [values])
-        .map(v => (v == null ? '' : String(v).trim()))
-        .filter(Boolean);
-
-      hidden.value = list.length ? JSON.stringify(list) : '';
-
-      const set = new Set(list);
-      wrap.querySelectorAll('.pm-option').forEach(btn => {
-        // Ignora os botões do filtro na aplicação do modal
-        if (btn.hasAttribute('data-filter-btn')) return;
-        // Ignora botões da edição rápida
-        if (btn.id && btn.id.startsWith('qe-')) return;
-        
-        const v = (btn.dataset.value || '').trim();
-        const isSelected = set.has(v);
-        btn.classList.toggle('pm-selected', isSelected);
-        btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
-      });
-    }
-
-    function togglePlayMode(value) {
-      const v = (value || '').trim();
-      if (!v) return;
-
-      const current = getSelectedPlayModes();
-      const idx = current.findIndex(x => String(x).trim() === v);
-
-      if (idx >= 0) current.splice(idx, 1);
-      else current.push(v);
-
-      setSelectedPlayModes(current);
-    }
-
-    function applyPlayMode(value) {
-      if (Array.isArray(value)) setSelectedPlayModes(value);
-      else setSelectedPlayModes(value ? [value] : []);
-    }
-
-    function initPlayModePicker() {
-      const wrap = document.getElementById('playmode-wrap');
-      if (!wrap) return;
-      if (wrap.dataset.bound === '1') return;
-      wrap.dataset.bound = '1';
-
-      wrap.addEventListener('click', (e) => {
-        const btn = e.target.closest('.pm-option');
-        if (!btn || btn.hasAttribute('data-filter-btn') || (btn.id && btn.id.startsWith('qe-'))) return;
-        togglePlayMode(btn.dataset.value || '');
-      });
-    }
-
-    document.addEventListener('change', (ev) => {
-      if (ev && ev.target && ev.target.id === 'has-tag') {
-        hasTagManualOverride = true;
-      }
-    });
-
-    document.addEventListener('input', (ev) => {
-      if (ev && ev.target && ev.target.id === 'nick') {
-        syncHasTagToggleFromNick();
-      }
-    });
-
-    // --- LÓGICA DE CACHE ---
-    const cachedMembersJSON = localStorage.getItem('membersList');
-    if(cachedMembersJSON) {
-         try {
-             const cached = JSON.parse(cachedMembersJSON);
-             if(Array.isArray(cached) && cached.length > 0) {
-                 membersCache = cached;
-                 applyFiltersAndRender();
-                 document.getElementById('member-count').textContent = `${membersCache.length} membros na guilda`;
-             }
-         } catch(e) { console.error("Erro cache:", e); }
-    }
-    // ----------------------------------
-
-    checkAuth().then(async (user) => {
-      if(!user) return;
-      document.getElementById('btn-logout').onclick = logout;
-
-      memberTag = await getMemberTagConfig();
-
-      const hasTagEl = document.getElementById('has-tag');
-      if (hasTagEl) {
-        hasTagEl.addEventListener('change', () => {
-          if (hasTagEl.checked && !memberTag) {
-            showToast('error', 'Nenhuma tag configurada. Configure em Ajustes.');
-            hasTagEl.checked = false;
-          }
-        });
-      }
-
-      const nickEl = document.getElementById('nick');
-      if (nickEl) {
-        nickEl.addEventListener('input', syncHasTagToggleFromNick);
-        nickEl.addEventListener('blur', syncHasTagToggleFromNick);
-      }
-      
-      loadMembers(false);
-      
-      document.getElementById('search-input').addEventListener('input', applyFiltersAndRender);
-    });
-
-    window.loadMembers = async function(forceRefresh = false) {
-      if(forceRefresh) {
-         showToast('info', 'Atualizando lista...');
-      }
-
-      try {
-        const snap = await getDocs(collection(db, "guildas", getGuildContext().guildId, "membros"));
-        const newMembers = [];
-        snap.forEach(d => newMembers.push({ id: d.id, ...d.data() }));
-        newMembers.sort((a,b)=> String(a.nick).localeCompare(String(b.nick)));
-        
-        const currentJSON = JSON.stringify(membersCache);
-        const newJSON = JSON.stringify(newMembers);
-
-        if (currentJSON !== newJSON || forceRefresh) {
-            membersCache = newMembers;
-            localStorage.setItem('membersList', newJSON);
-            
-            applyFiltersAndRender();
-            document.getElementById('member-count').textContent = `${membersCache.length} membros na guilda`;
-            
-            if(forceRefresh) showToast('success', 'Lista atualizada.');
-        } else {
-            console.log("Dados sincronizados.");
-        }
-
-      } catch(err) {
-        console.error(err);
-        membersCache = [];
-        localStorage.setItem('membersList', JSON.stringify([]));
-        applyFiltersAndRender();
-        document.getElementById('member-count').textContent = `0 membros na guilda`;
-
-        if(forceRefresh) showToast('error', 'Erro ao buscar dados.');
-      }
     };
+
+    function badge(active, icon) {
+      return `<div class="w-7 h-7 rounded-lg flex items-center justify-center ${active ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'}"><i data-lucide="${icon}" class="w-3 h-3"></i></div>`;
+    }
+
+    function detailBox(label, active, meta) {
+      return `<div class="bg-white rounded-xl p-3 border border-gray-100">
+        <p class="text-xs text-gray-400 mb-1">${label}</p>
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="${active ? 'check' : 'x'}" class="w-4 h-4 ${active ? 'text-emerald-500' : 'text-red-400'}"></i>
+          <span class="text-xs text-gray-500">Meta: ${meta}</span>
+        </div>
+      </div>`;
+    }
 
     function renderList(list, isSearch = false) {
       const el = document.getElementById('members-list');
@@ -869,21 +511,420 @@
       initIcons();
     }
 
-    function badge(active, icon) {
-      return `<div class="w-7 h-7 rounded-lg flex items-center justify-center ${active ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'}"><i data-lucide="${icon}" class="w-3 h-3"></i></div>`;
+
+    // ==========================================
+    // INICIALIZAÇÃO INSTANTÂNEA DO CACHE (Sem piscar)
+    // ==========================================
+    try {
+      const initCache = __readMembersFromCache();
+      if (initCache && initCache.length > 0) {
+        __setMembersCache(initCache);
+      }
+    } catch(e) { 
+      console.error("Erro no carregamento instantâneo do cache:", e); 
     }
 
-    function detailBox(label, active, meta) {
-      return `<div class="bg-white rounded-xl p-3 border border-gray-100">
-        <p class="text-xs text-gray-400 mb-1">${label}</p>
-        <div class="flex items-center gap-1.5">
-          <i data-lucide="${active ? 'check' : 'x'}" class="w-4 h-4 ${active ? 'text-emerald-500' : 'text-red-400'}"></i>
-          <span class="text-xs text-gray-500">Meta: ${meta}</span>
-        </div>
-      </div>`;
+
+    // ==========================================
+    // LÓGICA DE SINCRONIZAÇÃO (Firebase)
+    // ==========================================
+    window.loadMembers = async function(forceRefresh = false) {
+      const cached = __readMembersFromCache();
+      const needsFirstFetch = !cached || !cached.length;
+
+      // Se NÃO pediu pra forçar, E a gente JÁ achou os membros no cache, encerra aqui na hora!
+      if (!forceRefresh && !needsFirstFetch) {
+        // Garantia extra: se a tela por algum motivo esvaziou a variável, reabastece ela.
+        if (membersCache.length === 0 && cached) {
+           __setMembersCache(cached);
+        }
+        return; 
+      }
+
+      if (forceRefresh) showToast('info', 'Sincronizando com a base de dados...');
+
+      try {
+        const snap = await getDocs(collection(db, "guildas", getGuildContext().guildId, "membros"));
+        const fresh = [];
+        snap.forEach(d => fresh.push({ id: d.id, ...d.data() }));
+        fresh.sort((a,b)=> String(a.nick || '').localeCompare(String(b.nick || '')));
+
+        const cachedJSON = JSON.stringify(cached || []);
+        const freshJSON = JSON.stringify(fresh);
+
+        // Atualiza a tela só se tiver novidade ou for o primeiro acesso
+        if (cachedJSON !== freshJSON) {
+          __setMembersCache(fresh);
+          if (forceRefresh) showToast('success', 'Lista atualizada com sucesso.');
+        } else {
+          if (needsFirstFetch) __setMembersCache(fresh);
+          if (forceRefresh) showToast('success', 'Tudo já estava atualizado.');
+        }
+      } catch (err) {
+        console.error(err);
+        if (needsFirstFetch) {
+          __setMembersCache([]);
+          showToast('error', 'Erro ao buscar dados.');
+        } else if (forceRefresh) {
+          showToast('error', 'Erro ao sincronizar.');
+        }
+      }
+    };
+
+
+    // ==========================================
+    // FUNCIONALIDADES DOS MODAIS (EDIÇÃO RÁPIDA, ETC)
+    // ==========================================
+    window.openQuickEditModal = () => {
+       pendingEdits = {};
+       document.getElementById('qe-save-btn').classList.add('hidden');
+       document.getElementById('qe-info-text').classList.remove('hidden');
+       renderQuickEditList();
+       document.getElementById('quick-edit-modal').classList.remove('hidden');
+    };
+
+    window.closeQuickEditModal = () => document.getElementById('quick-edit-modal').classList.add('hidden');
+    
+    function renderQuickEditList() {
+       const container = document.getElementById('qe-members-list');
+       const sorted = [...membersCache].sort((a,b) => String(a.nick).localeCompare(String(b.nick)));
+
+       container.innerHTML = sorted.map(m => {
+           const state = pendingEdits[m.id] || { hasTag: !!m.hasTag, guildWar: !!m.guildWar, weeklyMeta: !!m.weeklyMeta };
+
+           return `
+             <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white border border-gray-100 rounded-xl gap-3 shadow-sm hover:border-emerald-100 transition-colors">
+                <div class="flex-1 min-w-0 flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-700 font-bold text-xs">
+                    ${m.nick ? m.nick.charAt(0).toUpperCase() : '?'}
+                  </div>
+                  <div>
+                    <p class="font-bold text-gray-900 text-sm truncate">${m.nick || 'Sem Nick'}</p>
+                    <p class="text-[11px] text-gray-400 font-medium">ID: ${m.visibleId || '?'}</p>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                   <button onclick="toggleQE('${m.id}', 'hasTag')" id="qe-${m.id}-hasTag" class="pm-option !p-2 !gap-1.5 !text-xs !rounded-lg flex justify-center flex-1 sm:flex-none ${state.hasTag ? 'pm-selected' : ''}">
+                     <span class="pm-circle scale-[0.75]"></span> Tag
+                   </button>
+                   <button onclick="toggleQE('${m.id}', 'guildWar')" id="qe-${m.id}-guildWar" class="pm-option !p-2 !gap-1.5 !text-xs !rounded-lg flex justify-center flex-1 sm:flex-none ${state.guildWar ? 'pm-selected' : ''}">
+                     <span class="pm-circle scale-[0.75]"></span> GG
+                   </button>
+                   <button onclick="toggleQE('${m.id}', 'weeklyMeta')" id="qe-${m.id}-weeklyMeta" class="pm-option !p-2 !gap-1.5 !text-xs !rounded-lg flex justify-center flex-1 sm:flex-none ${state.weeklyMeta ? 'pm-selected' : ''}">
+                     <span class="pm-circle scale-[0.75]"></span> Sem.
+                   </button>
+                </div>
+             </div>
+           `;
+       }).join('');
     }
 
-    // Ações Globais
+    window.toggleQE = (id, field) => {
+       const m = membersCache.find(x => x.id === id);
+       if(!m) return;
+
+       if(!pendingEdits[id]) {
+           pendingEdits[id] = { hasTag: !!m.hasTag, guildWar: !!m.guildWar, weeklyMeta: !!m.weeklyMeta };
+       }
+
+       pendingEdits[id][field] = !pendingEdits[id][field];
+
+       const btn = document.getElementById(`qe-${id}-${field}`);
+       if(pendingEdits[id][field]) {
+           btn.classList.add('pm-selected');
+       } else {
+           btn.classList.remove('pm-selected');
+       }
+
+       document.getElementById('qe-save-btn').classList.remove('hidden');
+       document.getElementById('qe-info-text').classList.add('hidden');
+    };
+
+    window.saveQuickEdits = async () => {
+       const keys = Object.keys(pendingEdits);
+       if(keys.length === 0) return;
+
+       const btn = document.getElementById('qe-save-btn');
+       btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-2"></i> Salvando...';
+       btn.disabled = true;
+
+       const batch = writeBatch(db);
+       const guildId = getGuildContext().guildId;
+       let didMigrate = false;
+
+       keys.forEach(id => {
+           const m = membersCache.find(x => x.id === id);
+           const updates = {
+               hasTag: pendingEdits[id].hasTag,
+               guildWar: pendingEdits[id].guildWar,
+               weeklyMeta: pendingEdits[id].weeklyMeta,
+               updatedAt: serverTimestamp()
+           };
+
+           // MIGRATION ON THE FLY (Edição rápida)
+           if (m.id !== m.visibleId) {
+               didMigrate = true;
+               const newRef = doc(db, "guildas", guildId, "membros", m.visibleId);
+               const oldRef = doc(db, "guildas", guildId, "membros", m.id);
+               
+               const fullObj = { ...m, ...updates };
+               delete fullObj.id; // remove o campo id para não sujar o documento
+               batch.set(newRef, fullObj);
+               batch.delete(oldRef);
+           } else {
+               const ref = doc(db, "guildas", guildId, "membros", id);
+               batch.update(ref, updates);
+           }
+       });
+
+       try {
+           await batch.commit();
+           
+           if (didMigrate) {
+               showToast('info', 'Usuário(s) migrado(s) para o novo sistema!');
+           } else {
+               showToast('success', `${keys.length} membro(s) atualizado(s)!`);
+           }
+           closeQuickEditModal();
+
+           // Atualiza cache local
+           keys.forEach(id => {
+             const idx = membersCache.findIndex(m => m.id === id);
+             if (idx >= 0) {
+               const m = membersCache[idx];
+               const newId = m.id !== m.visibleId ? m.visibleId : m.id;
+               membersCache[idx] = {
+                 ...m,
+                 hasTag: pendingEdits[id].hasTag,
+                 guildWar: pendingEdits[id].guildWar,
+                 weeklyMeta: pendingEdits[id].weeklyMeta,
+                 id: newId,
+                 updatedAt: Date.now()
+               };
+             }
+           });
+           __setMembersCache(membersCache);
+       } catch(e) {
+           console.error(e);
+           showToast('error', 'Erro ao salvar alterações em lote.');
+       } finally {
+           btn.innerHTML = 'Salvar Alterações';
+           btn.disabled = false;
+       }
+    };
+
+    // ----- ZERAR TODOS -----
+    window.promptZero = (type) => {
+       currentZeroAction = type;
+       const label = type === 'gg' ? 'a Guerra (GG)' : 'o Semanal';
+       document.getElementById('confirm-title').innerText = `Zerar ${label}?`;
+       document.getElementById('confirm-desc').innerHTML = `Essa ação irá colocar <strong>0 pontos</strong> e desmarcar a meta de <strong>TODOS OS MEMBROS</strong> da guilda.<br><br><span class="text-red-500 font-bold">Atenção: É irreversível!</span>`;
+       document.getElementById('confirm-modal').classList.remove('hidden');
+    };
+
+    window.closeConfirmModal = () => document.getElementById('confirm-modal').classList.add('hidden');
+
+    window.executeZero = async () => {
+       if(!membersCache || membersCache.length === 0) {
+           showToast('info', 'Não há membros para zerar.');
+           closeConfirmModal();
+           return;
+       }
+
+       const batch = writeBatch(db);
+       const guildId = getGuildContext().guildId;
+       let didMigrate = false;
+
+       membersCache.forEach(m => {
+           const updateData = { updatedAt: serverTimestamp() };
+           
+           if(currentZeroAction === 'gg') {
+               updateData.guildWar = false;
+               updateData.guildWarMeta = 0;
+           } else {
+               updateData.weeklyMeta = false;
+               updateData.weeklyMetaValue = 0;
+           }
+           
+           // MIGRATION ON THE FLY (Ao Zerar)
+           if (m.id !== m.visibleId) {
+               didMigrate = true;
+               const newRef = doc(db, "guildas", guildId, "membros", m.visibleId);
+               const oldRef = doc(db, "guildas", guildId, "membros", m.id);
+               const fullObj = { ...m, ...updateData };
+               delete fullObj.id;
+               batch.set(newRef, fullObj);
+               batch.delete(oldRef);
+           } else {
+               const ref = doc(db, "guildas", guildId, "membros", m.id);
+               batch.update(ref, updateData);
+           }
+       });
+
+       try {
+           closeConfirmModal();
+           showToast('info', 'Zerando todos os membros... aguarde.');
+           await batch.commit();
+           
+           if (didMigrate) {
+               showToast('info', 'Zerados e migrados para o novo sistema!');
+           } else {
+               showToast('success', 'Todos os membros zerados com sucesso!');
+           }
+           closeQuickEditModal();
+
+           // Atualiza cache local
+           membersCache = membersCache.map(m => {
+               const base = { ...m, updatedAt: Date.now() };
+               if (currentZeroAction === 'gg') {
+                   base.guildWar = false;
+                   base.guildWarMeta = 0;
+               } else {
+                   base.weeklyMeta = false;
+                   base.weeklyMetaValue = 0;
+               }
+               // atualiza ID localmente se foi migrado
+               if (base.id !== base.visibleId) base.id = base.visibleId;
+               return base;
+           });
+           __setMembersCache(membersCache);
+       } catch(e) {
+           console.error(e);
+           showToast('error', 'Erro ao processar zeramento.');
+       }
+    };
+
+
+    // ----- FILTRO DROPDOWN -----
+    window.toggleFilterDropdown = () => {
+      document.getElementById('filter-dropdown').classList.toggle('hidden');
+    };
+
+    window.applyFilter = (filterKey, filterLabel) => {
+      currentFilter = filterKey;
+      document.getElementById('filter-label').innerText = filterLabel;
+      document.getElementById('filter-dropdown').classList.add('hidden');
+
+      document.querySelectorAll('[data-filter-btn]').forEach(btn => {
+        btn.classList.remove('pm-selected');
+      });
+      
+      const activeBtn = document.querySelector(`[data-filter-btn="${filterKey}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('pm-selected');
+      }
+
+      applyFiltersAndRender();
+    };
+
+    document.addEventListener('click', (e) => {
+      const btn = document.getElementById('btn-filter');
+      const dropdown = document.getElementById('filter-dropdown');
+      if (btn && dropdown && !btn.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+
+    // ==========================================
+    // HELPERS DE TAGS E PLAYMODE
+    // ==========================================
+    function escapeRegExp(str) {
+      return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function nickHasMemberTag(nick) {
+      if (!memberTag) return false;
+      const raw = String(nick || "");
+      const t = String(memberTag || "").trim();
+      if (!t) return false;
+      try {
+        const re = new RegExp(escapeRegExp(t), 'i');
+        return re.test(raw);
+      } catch {
+        return raw.toLowerCase().includes(t.toLowerCase());
+      }
+    }
+
+    function syncHasTagToggleFromNick() {
+      const hasTagEl = document.getElementById('has-tag');
+      const nickEl = document.getElementById('nick');
+      if (!hasTagEl || !nickEl) return;
+      if (hasTagManualOverride) return;
+      if (!memberTag) return;
+      hasTagEl.checked = nickHasMemberTag(nickEl.value);
+    }
+
+    function getSelectedPlayModes() {
+      const hidden = document.getElementById('play-mode');
+      if (!hidden) return [];
+      const raw = (hidden.value || '').trim();
+      if (!raw) return [];
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed.filter(Boolean).map(v => String(v).trim()).filter(Boolean);
+      } catch {}
+      return [raw].filter(Boolean);
+    }
+
+    function setSelectedPlayModes(values) {
+      const hidden = document.getElementById('play-mode');
+      const wrap = document.getElementById('playmode-wrap');
+      if (!hidden || !wrap) return;
+
+      const list = (Array.isArray(values) ? values : [values])
+        .map(v => (v == null ? '' : String(v).trim()))
+        .filter(Boolean);
+
+      hidden.value = list.length ? JSON.stringify(list) : '';
+
+      const set = new Set(list);
+      wrap.querySelectorAll('.pm-option').forEach(btn => {
+        if (btn.hasAttribute('data-filter-btn')) return;
+        if (btn.id && btn.id.startsWith('qe-')) return;
+        
+        const v = (btn.dataset.value || '').trim();
+        const isSelected = set.has(v);
+        btn.classList.toggle('pm-selected', isSelected);
+        btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+      });
+    }
+
+    function togglePlayMode(value) {
+      const v = (value || '').trim();
+      if (!v) return;
+
+      const current = getSelectedPlayModes();
+      const idx = current.findIndex(x => String(x).trim() === v);
+
+      if (idx >= 0) current.splice(idx, 1);
+      else current.push(v);
+
+      setSelectedPlayModes(current);
+    }
+
+    function applyPlayMode(value) {
+      if (Array.isArray(value)) setSelectedPlayModes(value);
+      else setSelectedPlayModes(value ? [value] : []);
+    }
+
+    function initPlayModePicker() {
+      const wrap = document.getElementById('playmode-wrap');
+      if (!wrap) return;
+      if (wrap.dataset.bound === '1') return;
+      wrap.dataset.bound = '1';
+
+      wrap.addEventListener('click', (e) => {
+        const btn = e.target.closest('.pm-option');
+        if (!btn || btn.hasAttribute('data-filter-btn') || (btn.id && btn.id.startsWith('qe-'))) return;
+        togglePlayMode(btn.dataset.value || '');
+      });
+    }
+
+
+    // ==========================================
+    // EVENTOS DO MODAL DE MEMBROS E SUBMIT
+    // ==========================================
     window.toggleDetails = (id) => {
       const el = document.getElementById(`details-${id}`);
       el.classList.toggle('hidden');
@@ -923,12 +964,24 @@
     };
 
     window.deleteMember = async (id) => {
-      if(!confirm('Tem certeza?')) return;
+      if(!confirm('Tem certeza que deseja excluir?')) return;
       try {
+        const m = membersCache.find(x => x.id === id);
         await deleteDoc(doc(db, "guildas", getGuildContext().guildId, "membros", id));
-        showToast('success', 'Membro excluído.');
-        loadMembers(true);
-      } catch(e) { showToast('error', 'Erro ao excluir.'); }
+
+        membersCache = (membersCache || []).filter(m => m.id !== id);
+        __setMembersCache(membersCache);
+
+        // Aviso se era um usuário antigo que foi limpo
+        if (m && m.id !== m.visibleId) {
+             showToast('info', 'Usuário (sistema antigo) foi migrado/removido.');
+        } else {
+             showToast('success', 'Membro excluído.');
+        }
+      } catch(e) {
+        console.error(e);
+        showToast('error', 'Erro ao excluir.');
+      }
     };
 
     window.fetchNick = async () => {
@@ -952,8 +1005,8 @@
 
         if (res.ok && name) {
           document.getElementById('nick').value = name;
-      hasTagManualOverride = false;
-      syncHasTagToggleFromNick();
+          hasTagManualOverride = false;
+          syncHasTagToggleFromNick();
           feedback.innerHTML = `<span class="text-emerald-600 font-bold">✓ ${name} (Nível ${Number.isFinite(level) ? level : '?'})</span> <span class="text-gray-500">Dados fornecidos por api.mitsuri.fun!</span>`;
           syncHasTagToggleFromNick();
         } else {
@@ -974,14 +1027,10 @@
       const id = document.getElementById('member-id').value;
       const visibleId = document.getElementById('visible-id').value.trim();
       
-      if(!id) {
-        const exist = membersCache.find(m => m.visibleId === visibleId);
-        if(exist) { showToast('error', 'Esse ID já existe.'); return; }
-      }
-
       const rawNick = document.getElementById('nick').value.trim();
       const hasTag = document.getElementById('has-tag').checked;
       const finalNick = rawNick;
+      const guildId = getGuildContext().guildId;
 
       const payload = {
         visibleId,
@@ -1002,63 +1051,138 @@
 
       try {
         if(id) {
-          await setDoc(doc(db, "guildas", getGuildContext().guildId, "membros", id), payload, { merge: true });
-          showToast('success', 'Atualizado!');
+          if (id !== visibleId) {
+             // MIGRATION ON THE FLY (Edição de perfil)
+             await setDoc(doc(db, "guildas", guildId, "membros", visibleId), payload);
+             await deleteDoc(doc(db, "guildas", guildId, "membros", id));
+             showToast('info', 'Usuário foi migrado para o novo sistema!');
+             
+             // Update cache
+             const idx = membersCache.findIndex(m => m.id === id);
+             if (idx >= 0) membersCache[idx] = { ...membersCache[idx], ...payload, id: visibleId, updatedAt: Date.now() };
+          } else {
+             // NORMAL UPDATE
+             await setDoc(doc(db, "guildas", guildId, "membros", id), payload, { merge: true });
+             showToast('success', 'Membro Atualizado!');
+             
+             // Update cache
+             const idx = membersCache.findIndex(m => m.id === id);
+             if (idx >= 0) membersCache[idx] = { ...membersCache[idx], ...payload, updatedAt: Date.now() };
+          }
         } else {
-          const newRef = doc(collection(db, "guildas", getGuildContext().guildId, "membros"));
-          await setDoc(newRef, payload);
-          showToast('success', 'Criado!');
+          // CREATE NEW OR OVERWRITE (Usando sempre o ID do jogo)
+          await setDoc(doc(db, "guildas", guildId, "membros", visibleId), payload);
+          showToast('success', 'Adicionado (ou sobrescrito)!');
+          
+          // Tratamento no cache caso tenha sobrescrito
+          const idx = membersCache.findIndex(m => m.id === visibleId);
+          if (idx >= 0) {
+             membersCache[idx] = { ...membersCache[idx], ...payload, updatedAt: Date.now() };
+          } else {
+             membersCache.push({ id: visibleId, ...payload, updatedAt: Date.now() });
+          }
         }
+        
         closeModal();
-        loadMembers(true);
+        __setMembersCache(membersCache);
+
       } catch(err) {
         showToast('error', 'Erro ao salvar.');
       }
     });
+
+    document.addEventListener('change', (ev) => {
+      if (ev && ev.target && ev.target.id === 'has-tag') {
+        hasTagManualOverride = true;
+      }
+    });
+
+    document.addEventListener('input', (ev) => {
+      if (ev && ev.target && ev.target.id === 'nick') {
+        syncHasTagToggleFromNick();
+      }
+    });
+
+    // ==========================================
+    // FINALIZAÇÃO DE BOOT E AUTENTICAÇÃO
+    // ==========================================
+    initPlayModePicker();
+
+    checkAuth().then(async (user) => {
+      if(!user) return;
+      document.getElementById('btn-logout').onclick = logout;
+
+      memberTag = await getMemberTagConfig();
+
+      const hasTagEl = document.getElementById('has-tag');
+      if (hasTagEl) {
+        hasTagEl.addEventListener('change', () => {
+          if (hasTagEl.checked && !memberTag) {
+            showToast('error', 'Nenhuma tag configurada. Configure em Ajustes.');
+            hasTagEl.checked = false;
+          }
+        });
+      }
+
+      const nickEl = document.getElementById('nick');
+      if (nickEl) {
+        nickEl.addEventListener('input', syncHasTagToggleFromNick);
+        nickEl.addEventListener('blur', syncHasTagToggleFromNick);
+      }
+      
+      // Chama loadMembers para verificar se precisamos baixar algo (se não precisarmos, ele finaliza mudo)
+      loadMembers(false);
+      
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) {
+        searchInput.addEventListener('input', window.applyFiltersAndRender);
+      }
+    });
+
   </script>
 
   <!-- OTK Footer -->
-<footer id="otk-footer" class="mt-12 border-t border-emerald-500/10 text-slate-700">
-  <div class="mx-auto w-full max-w-5xl px-4 py-10">
-    <div class="flex flex-col items-center gap-4">
+  <footer id="otk-footer" class="mt-12 border-t border-emerald-500/10 text-slate-700">
+    <div class="mx-auto w-full max-w-5xl px-4 py-10">
+      <div class="flex flex-col items-center gap-4">
 
-      <div class="flex items-center justify-center gap-3">
-        <a href="https://instagram.com/ottakubrasil" target="_blank" rel="noopener noreferrer"
-           class="flex h-11 w-11 items-center justify-center rounded-full bg-black/5 ring-1 ring-black/10 transition hover:bg-black/10"
-           aria-label="Instagram principal: @ottakubrasil" title="@ottakubrasil">
-          <i data-lucide="instagram" class="h-5 w-5"></i>
-        </a>
+        <div class="flex items-center justify-center gap-3">
+          <a href="https://instagram.com/ottakubrasil" target="_blank" rel="noopener noreferrer"
+             class="flex h-11 w-11 items-center justify-center rounded-full bg-black/5 ring-1 ring-black/10 transition hover:bg-black/10"
+             aria-label="Instagram principal: @ottakubrasil" title="@ottakubrasil">
+            <i data-lucide="instagram" class="h-5 w-5"></i>
+          </a>
 
-        <a href="https://instagram.com/gameotk" target="_blank" rel="noopener noreferrer"
-           class="flex h-11 w-11 items-center justify-center rounded-full bg-black/5 ring-1 ring-black/10 transition hover:bg-black/10"
-           aria-label="Instagram gaming: @gameotk" title="@gameotk">
-          <i data-lucide="instagram" class="h-5 w-5"></i>
-        </a>
+          <a href="https://instagram.com/gameotk" target="_blank" rel="noopener noreferrer"
+             class="flex h-11 w-11 items-center justify-center rounded-full bg-black/5 ring-1 ring-black/10 transition hover:bg-black/10"
+             aria-label="Instagram gaming: @gameotk" title="@gameotk">
+            <i data-lucide="instagram" class="h-5 w-5"></i>
+          </a>
 
-        <a href="https://ottakubrasil.online" target="_blank" rel="noopener noreferrer"
-           class="flex h-11 w-11 items-center justify-center rounded-full bg-black/5 ring-1 ring-black/10 transition hover:bg-black/10"
-           aria-label="Site: ottakubrasil.online" title="ottakubrasil.online">
-          <i data-lucide="globe" class="h-5 w-5"></i>
-        </a>
+          <a href="https://ottakubrasil.online" target="_blank" rel="noopener noreferrer"
+             class="flex h-11 w-11 items-center justify-center rounded-full bg-black/5 ring-1 ring-black/10 transition hover:bg-black/10"
+             aria-label="Site: ottakubrasil.online" title="ottakubrasil.online">
+            <i data-lucide="globe" class="h-5 w-5"></i>
+          </a>
+        </div>
+
+        <div class="text-center">
+          <p class="text-sm font-semibold tracking-wide text-slate-800">
+            Ottakubrasil • Guilda Hub
+          </p>
+
+          <p class="mt-2 max-w-xl text-xs leading-relaxed text-slate-600">
+            Central de guilda e eventos: organização, velocidade e controle para facilitar sua vida no dia a dia.
+          </p>
+
+          <p class="mt-4 text-xs text-slate-500">
+            © Ottakubrasil • 2026
+          </p>
+        </div>
+
       </div>
-
-      <div class="text-center">
-        <p class="text-sm font-semibold tracking-wide text-slate-800">
-          Ottakubrasil • Guilda Hub
-        </p>
-
-        <p class="mt-2 max-w-xl text-xs leading-relaxed text-slate-600">
-          Central de guilda e eventos: organização, velocidade e controle para facilitar sua vida no dia a dia.
-        </p>
-
-        <p class="mt-4 text-xs text-slate-500">
-          © Ottakubrasil • 2026
-        </p>
-      </div>
-
     </div>
-  </div>
-</footer>
+  </footer>
 
 </body>
 </html>

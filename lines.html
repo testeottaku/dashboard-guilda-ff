@@ -143,7 +143,7 @@
             <select id="member-picker" class="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-white outline-none text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all">
               <option value="">Selecione um membro...</option>
             </select>
-            <button onclick="addPickedMember()" class="mt-2 w-full py-2.5 rounded-xl bg-white border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Adicionar</button>
+            <button id="btn-add-member" onclick="addPickedMember()" class="mt-2 w-full py-2.5 rounded-xl bg-white border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Adicionar</button>
           </div>
         </div>
 
@@ -172,10 +172,17 @@
   <script type="module">
 
     import { checkAuth, setupSidebar, initIcons, logout, db, showToast, getGuildContext } from './logic.js';
-    import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, addDoc, query, where, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     setupSidebar();
     initIcons();
+
+    // VIP (usa cache instantâneo; o tempo real fica no logic.js para o menu)
+    try {
+      const rawCtx = localStorage.getItem('guildCtx_cache_v1');
+      const c = rawCtx ? JSON.parse(rawCtx) : null;
+      applyVip(c?.vipTier);
+    } catch(_) {}
 
     function tierRank(t){
       const s=(t||'free').toString().toLowerCase();
@@ -205,7 +212,8 @@
     if (ctx?.guildId) guildId = ctx.guildId;
 
     const keyLines = () => guildId ? `linesList_${guildId}` : 'linesList';
-    const keyMembers = () => 'membersList'; // já existe no projeto
+    const keyMembers = () => guildId ? `membersList_${guildId}` : 'membersList'; // mesmo cache da tela de membros
+    const keyLinesCount = () => guildId ? `linesCount_${guildId}` : 'linesCount';
 
     // Controle de UI (evita salvar antes do ctx/auth resolver)
     function setUiReady(ready) {
@@ -230,6 +238,8 @@
       const el = document.getElementById('lines-count');
       if (!el) return;
       el.textContent = `${lines.length} line${lines.length === 1 ? '' : 's'}`;
+      // mantém um count cacheado também (útil antes da lista renderizar)
+      try { if (guildId) localStorage.setItem(keyLinesCount(), String(lines.length)); } catch(_) {}
     }
 
     function calcNextNumber() {
@@ -387,6 +397,15 @@
 
       if (!guildId) return;
 
+      // count cache (pra evitar "Carregando..." mesmo sem lista)
+      try {
+        const c = localStorage.getItem(keyLinesCount());
+        if (c !== null) {
+          const el = document.getElementById('lines-count');
+          if (el) el.textContent = `${Number(c)||0} line${Number(c)==1?'':'s'}`;
+        }
+      } catch(_) {}
+
       try {
         const raw = localStorage.getItem(keyLines());
         if (!raw) return;
@@ -398,6 +417,7 @@
     function saveCached(list) {
       if (!guildId) return;
       try { localStorage.setItem(keyLines(), JSON.stringify(list || [])); } catch(_) {}
+      try { localStorage.setItem(keyLinesCount(), String((list || []).length)); } catch(_) {}
     }
 
     // ---- Firestore ----------------------------------------------------------
@@ -418,6 +438,24 @@
       if (!guildId) return [];
       const snap = await getDocs(collection(db, 'guildas', guildId, 'lines'));
       const arr = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Migração leve: se doc antigo não tiver memberIds mas tiver members, grava memberIds (ajuda anti-duplicação)
+      try {
+        const fixes = [];
+        for (const d of snap.docs) {
+          const data = d.data() || {};
+          const hasMemberIds = Array.isArray(data.memberIds) && data.memberIds.length > 0;
+          const hasMembers = Array.isArray(data.members) && data.members.length > 0;
+          if (!hasMemberIds && hasMembers) {
+            const ids = data.members.map(m => m?.id).filter(Boolean).map(v => String(v));
+            if (ids.length) {
+              fixes.push(updateDoc(doc(db, 'guildas', guildId, 'lines', d.id), { memberIds: ids }).catch(()=>{}));
+            }
+          }
+        }
+        if (fixes.length) Promise.all(fixes).catch(()=>{});
+      } catch (_) {}
+
       // garante shape
       return arr.map((l) => ({
         id: l.id,
@@ -438,13 +476,40 @@
         if (!guildId) return;
 
         if (force) showToast('info', 'Atualizando...');
-        // garante membros para picker (se não tiver)
-        if (!Array.isArray(members) || members.length === 0) {
+
+        // 1) sempre tenta pegar membros do cache (mesmo esquema da tela de membros)
+        try {
+          const rawM = localStorage.getItem(keyMembers());
+          if (rawM) {
+            const arr = JSON.parse(rawM);
+            if (Array.isArray(arr)) members = arr;
+          }
+        } catch(_) {}
+
+        // se não tiver cache de membros e for necessário (picker), busca 1x
+        if ((!Array.isArray(members) || members.length === 0) && force) {
           await fetchMembersFromDB();
         }
+
+        // 2) lines: se não for force, usa cache e NÃO lê Firestore
+        if (!force) {
+          try {
+            const raw = localStorage.getItem(keyLines());
+            if (raw) {
+              const cached = JSON.parse(raw);
+              if (Array.isArray(cached)) {
+                renderLines(cached);
+                return;
+              }
+            }
+          } catch(_) {}
+        }
+
+        // 3) Firestore só quando: force OU cache vazio
         const arr = await fetchLinesFromDB();
         renderLines(arr);
         saveCached(arr);
+
         if (force) showToast('success', 'Atualizado!');
       } catch (e) {
         console.warn(e);
@@ -526,8 +591,10 @@
       document.getElementById('line-modal').classList.add('hidden');
     };
 
-    window.addPickedMember = () => {
+    // Agora o botão de Adicionar Membro é assíncrono e verifica no BD
+    window.addPickedMember = async () => {
       const picker = document.getElementById('member-picker');
+      const btn = document.getElementById('btn-add-member');
       const id = picker?.value;
       if (!id) return;
 
@@ -535,6 +602,40 @@
         showToast('error', 'Máximo de 4 membros por line.');
         return;
       }
+
+      // UX de verificando...
+      if(btn) {
+        btn.disabled = true;
+        btn.textContent = 'Verificando...';
+      }
+
+      // Verificação de duplicação direto no Firestore antes de colocar na UI do modal
+      try {
+        const qx = query(
+          collection(db, 'guildas', guildId, 'lines'),
+          where('memberIds', 'array-contains', String(id)),
+          limit(1)
+        );
+        const sx = await getDocs(qx);
+        
+        if (!sx.empty) {
+          const d0 = sx.docs[0];
+          // Se a line que ele já está NÃO for a line atual que você está editando
+          if (!editingLineId || d0.id !== String(editingLineId)) {
+            showToast('warn', 'Aviso: Este membro já está em outra line! Aperte ↻ na lista para atualizar seu painel.');
+            if(btn) { btn.disabled = false; btn.textContent = 'Adicionar'; }
+            return; // Bloqueia a adição
+          }
+        }
+      } catch (e) {
+        console.warn("Falha na checagem anti-duplicação", e);
+      }
+
+      if(btn) {
+        btn.disabled = false;
+        btn.textContent = 'Adicionar';
+      }
+
       selectedMemberIds.push(String(id));
       selectedMemberIds = uniq(selectedMemberIds).slice(0,4);
       picker.value = '';
@@ -592,14 +693,6 @@
         }
         if (selectedMemberIds.length > 4) selectedMemberIds = selectedMemberIds.slice(0,4);
 
-        // Verifica se alguém já está em outra line (exceto a line atual)
-        const used = computeMembersUsedInLines(lines.filter(l => String(l.id) !== String(editingLineId)));
-        const conflicts = selectedMemberIds.filter(id => used.has(String(id)));
-        if (conflicts.length) {
-          showToast('error', 'Um ou mais membros já estão em outra line.');
-          return;
-        }
-
         const rawName = (document.getElementById('line-name').value || '').toString().trim();
         let number = 0;
 
@@ -623,14 +716,37 @@
         if (!editingLineId) payload.createdAt = serverTimestamp();
 
         showToast('info', 'Salvando...');
+
+        let savedId = editingLineId;
         if (editingLineId) {
           await updateDoc(doc(db, 'guildas', guildId, 'lines', editingLineId), payload);
         } else {
           const ref = await addDoc(collection(db, 'guildas', guildId, 'lines'), payload);
+          savedId = ref.id;
           editingLineId = ref.id;
         }
 
-        await loadLines(false);
+        // --- CORREÇÃO DO CACHE: Atualiza localmente com as informações precisas
+        const lineObj = {
+          id: String(savedId),
+          name: payload.name || '',
+          number: payload.number || 0,
+          memberIds: Array.isArray(payload.memberIds) ? payload.memberIds.map(String) : [],
+          members: Array.isArray(payload.members) ? payload.members : [],
+          updatedAt: Date.now()
+        };
+
+        const idx = lines.findIndex(l => String(l.id) === String(savedId));
+        if (idx >= 0) {
+          lines[idx] = lineObj; // Substitui o que foi editado
+        } else {
+          lines.unshift(lineObj); // Insere no topo se for novo
+        }
+
+        // Forçamos o salvamento do cache (arrays + counts) imediatamente
+        saveCached(lines);
+        renderLines(lines);
+
         closeLineModal();
         showToast('success', 'Line salva!');
       } catch (e) {
@@ -647,8 +763,17 @@
           if (c?.guildId) guildId = c.guildId;
         }
         if (!guildId) throw new Error('Guilda não resolvida.');
+
         await deleteDoc(doc(db, 'guildas', guildId, 'lines', editingLineId));
-        await loadLines(false);
+
+        // --- CORREÇÃO DO CACHE: Filtra e salva as referências localmente
+        const before = Array.isArray(lines) ? lines : [];
+        lines = before.filter(l => String(l.id) !== String(editingLineId));
+        
+        saveCached(lines);
+        renderLines(lines);
+
+        editingLineId = null;
         closeLineModal();
         showToast('success', 'Line excluída!');
       } catch(e) {
@@ -725,6 +850,26 @@
     };
 
     // ---- Boot ---------------------------------------------------------------
+    // Sync entre abas: se membros/lines cache mudar, essa tela atualiza sem ler Firestore
+    window.addEventListener('storage', (ev) => {
+      if (!guildId) return;
+
+      if (ev.key === keyMembers()) {
+        try {
+          const arr = JSON.parse(ev.newValue || '[]');
+          if (Array.isArray(arr)) members = arr;
+        } catch(_) {}
+        // atualiza nomes nos cards e picker
+        renderLines(lines);
+        updatePickerOptions();
+        initIcons();
+      }
+
+      if (ev.key === keyLines() || ev.key === keyLinesCount()) {
+        loadCached();
+      }
+    });
+
     // 1) Renderiza cache imediatamente (sem piscar)
     loadCached();
 
@@ -740,7 +885,6 @@
       await loadLines(false);
     });
 
-  
   </script>
 </body>
 </html>
